@@ -1,0 +1,18 @@
+{
+  "Player 1": {
+    "Boardwalk": {
+      "houses": 4
+    },
+    "Park Place": {
+      "houses": 3
+    }
+  },
+  "Player 2": {
+    "Broadway": {
+      "houses": 4
+    },
+    "Fifth Avenue": {
+      "houses": 2
+    }
+  }
+}
