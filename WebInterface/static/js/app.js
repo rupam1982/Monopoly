@@ -5,18 +5,12 @@
 
 const API_BASE = '/api';
 
-// DOM Elements
-const playerSelect = document.getElementById('player-select');
-const playerInput = document.getElementById('player-input');
-const areaSelect = document.getElementById('area-select');
-const assetSelect = document.getElementById('asset-select');
-const housesSelect = document.getElementById('houses-select');
-const assignBtn = document.getElementById('assign-btn');
-const resetBtn = document.getElementById('reset-btn');
-const refreshBtn = document.getElementById('refresh-btn');
-const messageArea = document.getElementById('message-area');
-const messageContent = document.getElementById('message-content');
-const playerDbContent = document.getElementById('player-db-content');
+// DOM Elements - will be initialized after DOM loads
+let playerSelect, playerInput, areaSelect, assetSelect, housesSelect;
+let assignBtn, resetBtn, refreshBtn;
+let messageArea, messageContent, playerDbContent;
+let errorDetailsBox, errorDetailsContent, closeErrorBox;
+let pythonOutputBox, pythonOutputContent, closeOutputBox;
 
 // State
 let availableAreas = [];
@@ -27,6 +21,29 @@ let selectedArea = null;
  * Initialize the application
  */
 async function init() {
+    // Initialize DOM elements
+    playerSelect = document.getElementById('player-select');
+    playerInput = document.getElementById('player-input');
+    areaSelect = document.getElementById('area-select');
+    assetSelect = document.getElementById('asset-select');
+    housesSelect = document.getElementById('houses-select');
+    assignBtn = document.getElementById('assign-btn');
+    resetBtn = document.getElementById('reset-btn');
+    refreshBtn = document.getElementById('refresh-btn');
+    messageArea = document.getElementById('message-area');
+    messageContent = document.getElementById('message-content');
+    playerDbContent = document.getElementById('player-db-content');
+    errorDetailsBox = document.getElementById('error-details-box');
+    errorDetailsContent = document.getElementById('error-details-content');
+    closeErrorBox = document.getElementById('close-error-box');
+    pythonOutputBox = document.getElementById('python-output-box');
+    pythonOutputContent = document.getElementById('python-output-content');
+    closeOutputBox = document.getElementById('close-output-box');
+
+    // Debug: Check if boxes were found
+    console.log('Error box element:', errorDetailsBox);
+    console.log('Python output box element:', pythonOutputBox);
+
     await loadAreas();
     await loadPlayers();
     await loadDatabase();
@@ -227,6 +244,51 @@ function clearMessage() {
 }
 
 /**
+ * Show error details in dedicated box
+ */
+function showErrorDetails(errorText) {
+    console.log('showErrorDetails called with:', errorText);
+    errorDetailsContent.innerHTML = `<pre>${escapeHtml(errorText)}</pre>`;
+    errorDetailsBox.style.display = 'block';
+    console.log('Error box display set to:', errorDetailsBox.style.display);
+}
+
+/**
+ * Hide error details box
+ */
+function hideErrorDetails() {
+    console.log('hideErrorDetails called');
+    errorDetailsBox.style.display = 'none';
+}
+
+/**
+ * Show Python output in dedicated box
+ */
+function showPythonOutput(outputText) {
+    console.log('showPythonOutput called with:', outputText);
+    pythonOutputContent.innerHTML = `<pre>${escapeHtml(outputText)}</pre>`;
+    pythonOutputBox.style.display = 'block';
+    console.log('Python output box display set to:', pythonOutputBox.style.display);
+}
+
+/**
+ * Hide Python output box
+ */
+function hidePythonOutput() {
+    console.log('hidePythonOutput called');
+    pythonOutputBox.style.display = 'none';
+}
+
+/**
+ * Escape HTML to prevent XSS
+ */
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+/**
  * Reset form to initial state
  */
 function resetForm() {
@@ -240,6 +302,7 @@ function resetForm() {
     housesSelect.value = '';
     housesSelect.disabled = true;
     clearMessage();
+    // Don't auto-hide error box - let user close it manually
     updateAssignButtonState();
 }
 
@@ -280,10 +343,19 @@ async function handleAssign() {
 
         const data = await response.json();
 
+        // Always show Python output if available
+        if (data.message) {
+            showPythonOutput(data.message);
+        }
+
         // Determine message type
         let messageType = 'success';
         if (data.status === 'error') {
             messageType = 'error';
+            // Also show in error details for errors
+            if (data.message) {
+                showErrorDetails(data.message);
+            }
         } else if (data.status === 'warning') {
             messageType = 'warning';
         }
@@ -301,7 +373,9 @@ async function handleAssign() {
             updateAssignButtonState();
         }
     } catch (error) {
-        showMessage('error', `Assignment failed: ${error.message}`);
+        const errorMsg = `Assignment failed: ${error.message}`;
+        showMessage('error', errorMsg);
+        showErrorDetails(`Network Error:\n${error.message}\n\nStack Trace:\n${error.stack || 'Not available'}`);
         updateAssignButtonState();
     }
 }
@@ -318,7 +392,43 @@ async function loadDatabase() {
         if (Object.keys(playerDb).length === 0) {
             playerDbContent.innerHTML = '<p class="empty">No players or properties assigned yet.</p>';
         } else {
-            playerDbContent.innerHTML = `<pre>${JSON.stringify(playerDb, null, 2)}</pre>`;
+            // Build table
+            let tableHTML = `
+                <table class="db-table">
+                    <thead>
+                        <tr>
+                            <th>Player</th>
+                            <th>Street</th>
+                            <th>Asset Name</th>
+                            <th>No of Houses</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            // Iterate through players, streets, and assets
+            for (const player in playerDb) {
+                for (const street in playerDb[player]) {
+                    for (const asset in playerDb[player][street]) {
+                        const houses = playerDb[player][street][asset].houses || 0;
+                        tableHTML += `
+                            <tr>
+                                <td>${escapeHtml(player)}</td>
+                                <td>${escapeHtml(street)}</td>
+                                <td>${escapeHtml(asset)}</td>
+                                <td>${houses}</td>
+                            </tr>
+                        `;
+                    }
+                }
+            }
+
+            tableHTML += `
+                    </tbody>
+                </table>
+            `;
+
+            playerDbContent.innerHTML = tableHTML;
         }
     } catch (error) {
         playerDbContent.innerHTML = `<p class="error">Failed to load database: ${error.message}</p>`;
@@ -335,8 +445,14 @@ function setupEventListeners() {
     assetSelect.addEventListener('change', handleAssetChange);
     housesSelect.addEventListener('change', handleHousesChange);
     assignBtn.addEventListener('click', handleAssign);
-    resetBtn.addEventListener('click', resetForm);
+    resetBtn.addEventListener('click', () => {
+        resetForm();
+        hideErrorDetails(); // Hide error box when user clicks reset
+        hidePythonOutput(); // Hide output box when user clicks reset
+    });
     refreshBtn.addEventListener('click', loadDatabase);
+    closeErrorBox.addEventListener('click', hideErrorDetails);
+    closeOutputBox.addEventListener('click', hidePythonOutput);
 
     // Allow Enter key to submit
     housesSelect.addEventListener('keypress', (e) => {

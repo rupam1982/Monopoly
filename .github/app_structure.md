@@ -17,3 +17,10 @@
 
 ## Execution action
 1. Once the button is clicked, "player_asset_assignment.py" will be called with player name, area, asset and number of houses as CLI arguments and Player_database.json will be updated.
+
+## Database display structure
+The player database needs to be displayed in a tabular form after each player assignment entry. The columns should be in order, the following
+1. Player
+2. Street
+3. Asset name
+4. No of houses

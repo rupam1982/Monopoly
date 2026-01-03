@@ -65,6 +65,24 @@
                 <div id="message-area" class="message-area" style="display: none;">
                     <div id="message-content"></div>
                 </div>
+
+                <!-- Error Details Box -->
+                <div id="error-details-box" class="error-details-box" style="display: none;">
+                    <div class="error-header">
+                        <span>⚠️ Error Details</span>
+                        <button id="close-error-box" class="close-btn">&times;</button>
+                    </div>
+                    <div id="error-details-content" class="error-content"></div>
+                </div>
+
+                <!-- Python Output Box -->
+                <div id="python-output-box" class="python-output-box" style="display: none;">
+                    <div class="output-header">
+                        <span>🐍 Python Output</span>
+                        <button id="close-output-box" class="close-btn">&times;</button>
+                    </div>
+                    <div id="python-output-content" class="output-content"></div>
+                </div>
             </section>
 
             <!-- Database State Section -->
@@ -72,7 +90,6 @@
                 <h2>Current Database State</h2>
                 <div class="database-viewer">
                     <div class="db-panel">
-                        <h3>Players & Properties</h3>
                         <div id="player-db-content" class="db-content">
                             <p class="loading">Loading...</p>
                         </div>
