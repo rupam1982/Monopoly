@@ -76,7 +76,7 @@ http://127.0.0.1:5000
 
 ### 5. Assign Button
 - **Disabled** until all fields are valid
-- Calls `player_asset_assignment.py` with CLI arguments
+- Directly calls `assign_asset_to_player()` from DatabasePackage
 - Shows SUCCESS/ERROR/WARNING messages
 - Auto-refreshes data after assignment
 
@@ -92,9 +92,8 @@ User fills form → JavaScript validates → POST to /api/assign
                                            ↓
                                     Flask backend
                                            ↓
-                                   subprocess.run()
-                                           ↓
-                        player_asset_assignment.py
+                            assign_asset_to_player()
+                                  (DatabasePackage)
                                            ↓
                                     Updates JSON file
                                            ↓

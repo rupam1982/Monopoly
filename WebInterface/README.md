@@ -28,10 +28,10 @@ WebInterface/
 
 - Python 3.7 or higher
 - Flask 2.0 or higher
-- The parent Monopoly project with:
-  - `Asset_database.json` (generated from Asset_database.xlsx)
-  - `player_asset_assignment.py` (CLI script)
-  - `DatabasePackage/` (Python module)
+- Local dependencies:
+  - `Asset_database.json` (asset reference database)
+  - `Player_database.json` (player ownership database, auto-created)
+  - `DatabasePackage/` (Python module with data access functions)
 
 ## Installation
 
@@ -209,15 +209,15 @@ excel_to_assets_json("Asset_database.xlsx")
 app.run(debug=True, host='127.0.0.1', port=5001)
 ```
 
-### Python Script Not Found
+### Missing Database Files
 
-**Issue:** "player_asset_assignment.py not found" error
+**Issue:** "Database not found" errors
 
-**Solution:** Verify that `player_asset_assignment.py` exists in the parent project directory.
+**Solution:** Ensure `Asset_database.json` and `Player_database.json` exist in the WebInterface directory. The Player database will be auto-created on first assignment if missing.
 
-## Integration with CLI
+## Integration with DatabasePackage
 
-The web interface calls the `player_asset_assignment.py` CLI script for all property assignments. This ensures consistency with the command-line tool and maintains the same validation and error-handling behavior.
+The web interface directly uses the `DatabasePackage` module for all property assignments and data access. This provides seamless integration with the core backend logic while maintaining all validation and error-handling behavior.
 
 ## Dependencies
 

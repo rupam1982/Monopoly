@@ -26,12 +26,12 @@ A fully functional Flask web application for the Monopoly Property Management Sy
 ### Routes (7 Total)
 ```
 GET  /                      → Serve index.html
-GET  /api/areas             → List all property areas from Asset_database.json
-GET  /api/assets/<area>     → List properties in an area
-GET  /api/players           → List all existing players
-POST /api/assign            → Assign property to player (calls CLI script)
-GET  /api/player-assets     → Get player's properties
-GET  /api/database          → View full database state
+GET  /api/areas             → List all property areas (via DatabasePackage)
+GET  /api/assets/<area>     → List properties in an area (via DatabasePackage)
+GET  /api/players           → List all existing players (via DatabasePackage)
+POST /api/assign            → Assign property to player (via DatabasePackage)
+GET  /api/player-assets     → Get player's properties (via DatabasePackage)
+GET  /api/database          → View full database state (via DatabasePackage)
 ```
 
 ### Frontend Features
@@ -59,10 +59,10 @@ GET  /api/database          → View full database state
   - Smooth animations and transitions
 
 ### Backend Integration
-- Calls `../player_asset_assignment.py` via subprocess
-- Passes CLI arguments directly from form
-- Captures and displays output messages
-- No mocking - real integration with Python backend
+- Directly calls `assign_asset_to_player()` from DatabasePackage
+- Uses keyword-only arguments for data integrity
+- Captures print output for user feedback
+- No subprocess overhead - direct Python integration
 - Returns status codes and messages to frontend
 
 ## Architecture Adherence
@@ -75,7 +75,7 @@ GET  /api/database          → View full database state
 ✅ "Other player" / "Add New Player" option  
 ✅ Asset dropdown disabled until area selected  
 ✅ Assign button disabled until valid selections  
-✅ Button calls player_asset_assignment.py with CLI arguments  
+✅ Button calls DatabasePackage functions directly  
 ✅ Updates Player_database.json  
 
 ### Follows copilot-instructions.md Patterns
