@@ -18,7 +18,7 @@
         <main>
             <!-- Asset Assignment Section -->
             <section class="assignment-section">
-                <h2>Assign Property to Player</h2>
+                <h2>Player Property Action</h2>
 
                 <div class="input-group">
                     <div class="input-field">
@@ -59,6 +59,8 @@
 
                 <div class="button-group">
                     <button id="assign-btn" class="btn btn-primary" disabled>Assign Property</button>
+                    <button id="pay-rent-btn" class="btn btn-warning" disabled style="display: none;">Pay Rent</button>
+                    <span id="rent-message" class="rent-message"></span>
                     <button id="reset-btn" class="btn btn-secondary">Reset</button>
                 </div>
 
@@ -87,7 +89,7 @@
 
             <!-- Database State Section -->
             <section class="database-section">
-                <h2>Current Database State</h2>
+                <h2>Player Property Inventory</h2>
                 <div class="database-viewer">
                     <div class="db-panel">
                         <div id="player-db-content" class="db-content">
