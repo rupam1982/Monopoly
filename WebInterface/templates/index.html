@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monopoly Asset Assignment</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>Monopoly Property Management</h1>
+            <p class="subtitle">Assign assets and track player ownership</p>
+        </header>
+
+        <main>
+            <!-- Asset Assignment Section -->
+            <section class="assignment-section">
+                <h2>Assign Property to Player</h2>
+
+                <div class="input-group">
+                    <div class="input-field">
+                        <label for="player-select">Player</label>
+                        <select id="player-select" class="dropdown">
+                            <option value="">-- Select Player --</option>
+                        </select>
+                        <input type="text" id="player-input" class="player-input" placeholder="Enter new player name"
+                            style="display: none;">
+                    </div>
+
+                    <div class="input-field">
+                        <label for="area-select">Area (Street)</label>
+                        <select id="area-select" class="dropdown" disabled>
+                            <option value="">-- Select Area --</option>
+                        </select>
+                    </div>
+
+                    <div class="input-field">
+                        <label for="asset-select">Property</label>
+                        <select id="asset-select" class="dropdown" disabled>
+                            <option value="">-- Select Property --</option>
+                        </select>
+                    </div>
+
+                    <div class="input-field">
+                        <label for="houses-select">Houses</label>
+                        <select id="houses-select" class="dropdown" disabled>
+                            <option value="">-- Select Houses --</option>
+                            <option value="0">0 Houses</option>
+                            <option value="1">1 House</option>
+                            <option value="2">2 Houses</option>
+                            <option value="3">3 Houses</option>
+                            <option value="4">4 Houses</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="button-group">
+                    <button id="assign-btn" class="btn btn-primary" disabled>Assign Property</button>
+                    <button id="reset-btn" class="btn btn-secondary">Reset</button>
+                </div>
+
+                <div id="message-area" class="message-area" style="display: none;">
+                    <div id="message-content"></div>
+                </div>
+            </section>
+
+            <!-- Database State Section -->
+            <section class="database-section">
+                <h2>Current Database State</h2>
+                <div class="database-viewer">
+                    <div class="db-panel">
+                        <h3>Players & Properties</h3>
+                        <div id="player-db-content" class="db-content">
+                            <p class="loading">Loading...</p>
+                        </div>
+                    </div>
+                </div>
+                <button id="refresh-btn" class="btn btn-secondary">Refresh Database</button>
+            </section>
+        </main>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+
+</html>
