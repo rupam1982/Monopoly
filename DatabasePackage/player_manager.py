@@ -202,3 +202,16 @@ def assign_asset_to_player(player_database_file: str = "Player_database.json", *
     print(f"INFO: Player database saved to '{player_database_file}'")
     
     return player_database
+
+
+def process_rent_payment(*, paying_player: str, receiving_player: str, rent_amount: int) -> None:
+    """
+    Process a rent payment transaction between two players.
+    This is a dummy function that prints a transaction message.
+    
+    Args:
+        paying_player: Name of the player paying rent
+        receiving_player: Name of the player receiving rent
+        rent_amount: Amount of rent to be paid
+    """
+    print(f"Player {paying_player} has paid ${rent_amount} to Player {receiving_player}")

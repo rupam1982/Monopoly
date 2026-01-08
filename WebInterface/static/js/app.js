@@ -441,19 +441,69 @@ async function handleAssign() {
  * Handle pay rent button click
  */
 async function handlePayRent() {
-    const playerName = playerSelect.value === '__new_player__'
+    // Extract information from current selections
+    const payingPlayer = playerSelect.value === '__new_player__'
         ? playerInput.value.trim()
         : playerSelect.value;
+    const areaSelected = areaSelect.value;
+    const assetSelected = assetSelect.value;
 
-    const areaName = areaSelect.value;
-    const assetName = assetSelect.value;
+    if (!payingPlayer || !areaSelected || !assetSelected) {
+        showErrorDetails('Missing player, area, or asset information');
+        return;
+    }
 
-    // Get the rent message that's already displayed
-    const rentMsg = rentMessage.textContent;
+    // Find the owner of the asset
+    const owner = findAssetOwner(areaSelected, assetSelected);
 
-    // Show in Python output for record
-    if (rentMsg) {
-        showPythonOutput(rentMsg);
+    if (!owner) {
+        showErrorDetails('Could not determine asset owner');
+        return;
+    }
+
+    // Get the number of houses from the database
+    const ownerData = currentPlayerDb[owner];
+    const houses = ownerData && ownerData[areaSelected] && ownerData[areaSelected][assetSelected]
+        ? ownerData[areaSelected][assetSelected].houses || 0
+        : 0;
+
+    // Calculate rent amount
+    const rentAmount = await calculateRent(areaSelected, assetSelected, houses);
+
+    if (rentAmount === null) {
+        showErrorDetails('Could not calculate rent amount');
+        return;
+    }
+
+    // Disable button during request
+    payRentBtn.disabled = true;
+
+    try {
+        const response = await fetch(`${API_BASE}/pay-rent`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                paying_player: payingPlayer,
+                receiving_player: owner,
+                rent_amount: rentAmount
+            }),
+        });
+
+        const result = await response.json();
+
+        if (result.error) {
+            showErrorDetails(result.error);
+        } else if (result.message) {
+            // Display the transaction message in the same space as the earlier rent message
+            rentMessage.textContent = result.message;
+        }
+    } catch (error) {
+        showErrorDetails(`Network error: ${error.message}`);
+    } finally {
+        // Re-enable button
+        payRentBtn.disabled = false;
     }
 }
 

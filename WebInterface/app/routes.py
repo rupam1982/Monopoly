@@ -13,7 +13,8 @@ from DatabasePackage import (
     get_assets as db_get_assets,
     get_players as db_get_players,
     get_player_assets as db_get_player_assets,
-    get_database_state as db_get_database_state
+    get_database_state as db_get_database_state,
+    process_rent_payment
 )
 
 # Create blueprints
@@ -135,6 +136,63 @@ def get_database_state():
     """Get current state of both databases"""
     database_state = db_get_database_state()
     return jsonify(database_state)
+
+
+@api.route('/pay-rent', methods=['POST'])
+def pay_rent():
+    """
+    Process rent payment between players.
+    Expects JSON payload with: paying_player, receiving_player, rent_amount
+    """
+    data = request.get_json()
+    
+    # Validate required fields
+    required_fields = ['paying_player', 'receiving_player', 'rent_amount']
+    if not all(field in data for field in required_fields):
+        return jsonify({'error': 'Missing required fields'}), 400
+    
+    try:
+        paying_player = str(data['paying_player']).strip()
+        receiving_player = str(data['receiving_player']).strip()
+        rent_amount = int(data['rent_amount'])
+        
+        # Validate inputs
+        if not paying_player or not receiving_player:
+            return jsonify({'error': 'Player names cannot be empty'}), 400
+        
+        if rent_amount < 0:
+            return jsonify({'error': 'Rent amount must be non-negative'}), 400
+        
+        # Capture printed output from the function
+        captured_output = io.StringIO()
+        old_stdout = sys.stdout
+        sys.stdout = captured_output
+        
+        try:
+            # Call the process_rent_payment function
+            process_rent_payment(
+                paying_player=paying_player,
+                receiving_player=receiving_player,
+                rent_amount=rent_amount
+            )
+            
+            # Restore stdout and get the output
+            sys.stdout = old_stdout
+            output = captured_output.getvalue()
+            
+            return jsonify({
+                'status': 'success',
+                'message': output.strip()
+            })
+        except Exception as func_error:
+            # Restore stdout in case of error
+            sys.stdout = old_stdout
+            raise func_error
+    
+    except ValueError as e:
+        return jsonify({'error': str(e)}), 400
+    except Exception as e:
+        return jsonify({'error': f'Unexpected error: {str(e)}'}), 500
 
 
 @main.route('/', methods=['GET'])
