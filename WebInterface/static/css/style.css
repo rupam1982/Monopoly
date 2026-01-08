@@ -39,6 +39,7 @@ header {
     border-radius: 8px;
     margin-bottom: 40px;
     box-shadow: var(--shadow-lg);
+    position: relative;
 }
 
 header h1 {
@@ -49,6 +50,32 @@ header h1 {
 .subtitle {
     font-size: 1.1em;
     opacity: 0.9;
+}
+
+.btn-start-game {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background-color: #10b981;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    font-size: 1em;
+    font-weight: 600;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.btn-start-game:hover {
+    background-color: #059669;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+}
+
+.btn-start-game:active {
+    transform: translateY(0);
 }
 
 main {

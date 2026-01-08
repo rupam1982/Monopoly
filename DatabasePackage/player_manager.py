@@ -204,14 +204,45 @@ def assign_asset_to_player(player_database_file: str = "Player_database.json", *
     return player_database
 
 
-def process_rent_payment(*, paying_player: str, receiving_player: str, rent_amount: int) -> None:
+def process_rent_payment(player_accounts_file: str, *, paying_player: str, receiving_player: str, rent_amount: int) -> None:
     """
     Process a rent payment transaction between two players.
-    This is a dummy function that prints a transaction message.
+    Updates the player accounts JSON file with the transaction details.
     
     Args:
+        player_accounts_file: Path to the player accounts JSON file
         paying_player: Name of the player paying rent
         receiving_player: Name of the player receiving rent
         rent_amount: Amount of rent to be paid
     """
+    # Load player accounts database
+    if os.path.exists(player_accounts_file):
+        with open(player_accounts_file, 'r', encoding='utf-8') as f:
+            player_accounts = json.load(f)
+    else:
+        player_accounts = {}
+        print(f"INFO: Created new player accounts database (file '{player_accounts_file}' did not exist)")
+    
+    # Ensure both players have account entries
+    if paying_player not in player_accounts:
+        player_accounts[paying_player] = []
+    if receiving_player not in player_accounts:
+        player_accounts[receiving_player] = []
+    
+    # Add negative transaction to paying player's account
+    player_accounts[paying_player].append({
+        "payment amount": -rent_amount,
+        "payment source": receiving_player
+    })
+    
+    # Add positive transaction to receiving player's account
+    player_accounts[receiving_player].append({
+        "payment amount": rent_amount,
+        "payment source": paying_player
+    })
+    
+    # Save updated accounts back to file
+    with open(player_accounts_file, 'w', encoding='utf-8') as f:
+        json.dump(player_accounts, f, indent=4)
+    
     print(f"Player {paying_player} has paid ${rent_amount} to Player {receiving_player}")

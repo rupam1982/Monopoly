@@ -107,7 +107,7 @@ def validate_asset_exists(asset_database_file: str, area_name: str, asset_name: 
         return True
 
 
-def assign_asset_to_player(player_database_file: str = "Player_database.json", *, player_name: str, area_name: str, asset_name: str, houses: int, asset_database_file: str = None) -> dict:
+def assign_asset_to_player(player_database_file: str = "Player_database.json", *, player_name: str, area_name: str, asset_name: str, houses: int, asset_database_file: str = None, player_accounts_file: str = None) -> dict:
     """
     Assign an asset with a specified number of houses to a player in a specific area.
     If the player already owns the asset, add the houses to the existing count.
@@ -123,6 +123,10 @@ def assign_asset_to_player(player_database_file: str = "Player_database.json", *
         houses: Number of houses to add to the asset (must be >= 0)
         asset_database_file: Path to JSON file containing the asset database for validation.
                             Defaults to None (no validation). If provided, validates that
+                            the asset exists under the specified area.
+        player_accounts_file: Path to JSON file containing the player accounts.
+                             If provided and player is new, initializes account with $1500.
+                             Defaults to None (no account initialization).
                             the asset exists under the specified area.
     
     Returns:
@@ -170,6 +174,29 @@ def assign_asset_to_player(player_database_file: str = "Player_database.json", *
     # Create player entry if doesn't exist
     if player_name not in player_database:
         player_database[player_name] = {}
+        
+        # Initialize player account if player_accounts_file is provided
+        if player_accounts_file is not None:
+            # Load player accounts database
+            if os.path.exists(player_accounts_file):
+                with open(player_accounts_file, 'r', encoding='utf-8') as f:
+                    player_accounts = json.load(f)
+            else:
+                player_accounts = {}
+            
+            # Add new player with starting balance if not already in accounts
+            if player_name not in player_accounts:
+                player_accounts[player_name] = [
+                    {
+                        "payment amount": 1500,
+                        "payment source": "Treasurer"
+                    }
+                ]
+                
+                # Save updated accounts
+                with open(player_accounts_file, 'w', encoding='utf-8') as f:
+                    json.dump(player_accounts, f, indent=4)
+                print(f"INFO: Created account for new player '{player_name}' with $1500 starting balance")
     
     # Create area entry if doesn't exist
     if area_name not in player_database[player_name]:
@@ -185,9 +212,28 @@ def assign_asset_to_player(player_database_file: str = "Player_database.json", *
             print(f"WARNING: Adding {houses} houses to asset '{asset_name}' ({area_name}) for player '{player_name}' would result in {new_total} houses, but maximum is 4. Capping at 4.")
             new_total = 4
         
+        # Calculate cost for additional houses only
+        purchase_amount = 0
+        if asset_database_file and player_accounts_file and os.path.exists(asset_database_file):
+            with open(asset_database_file, 'r', encoding='utf-8') as f:
+                asset_database = json.load(f)
+            if area_name in asset_database and asset_name in asset_database[area_name]:
+                house_price = asset_database[area_name][asset_name].get('house_price', 0)
+                purchase_amount = house_price * houses
+        
         print(f"INFO: Adding {houses} houses to asset '{asset_name}' ({area_name}) for player '{player_name}': {existing_houses} + {houses} = {new_total} houses")
         player_database[player_name][area_name][asset_name] = {"houses": new_total}
     else:
+        # Calculate total purchase amount: land price + (house price * houses)
+        purchase_amount = 0
+        if asset_database_file and player_accounts_file and os.path.exists(asset_database_file):
+            with open(asset_database_file, 'r', encoding='utf-8') as f:
+                asset_database = json.load(f)
+            if area_name in asset_database and asset_name in asset_database[area_name]:
+                land_price = asset_database[area_name][asset_name].get('land_price', 0)
+                house_price = asset_database[area_name][asset_name].get('house_price', 0)
+                purchase_amount = land_price + (house_price * houses)
+        
         # Check if initial assignment exceeds 4
         if houses > 4:
             print(f"WARNING: Assigning {houses} houses to asset '{asset_name}' ({area_name}) exceeds maximum of 4. Capping at 4.")
@@ -195,6 +241,31 @@ def assign_asset_to_player(player_database_file: str = "Player_database.json", *
         
         print(f"SUCCESS: Asset '{asset_name}' ({area_name}) assigned to player '{player_name}' with {houses} houses")
         player_database[player_name][area_name][asset_name] = {"houses": houses}
+    
+    # Record purchase transaction in player accounts
+    if player_accounts_file and purchase_amount > 0:
+        # Load player accounts database
+        if os.path.exists(player_accounts_file):
+            with open(player_accounts_file, 'r', encoding='utf-8') as f:
+                player_accounts = json.load(f)
+        else:
+            player_accounts = {}
+        
+        # Ensure player has account entry
+        if player_name not in player_accounts:
+            player_accounts[player_name] = []
+        
+        # Add negative transaction (payment to Treasurer)
+        player_accounts[player_name].append({
+            "payment amount": -purchase_amount,
+            "payment source": "Treasurer"
+        })
+        
+        # Save updated accounts
+        with open(player_accounts_file, 'w', encoding='utf-8') as f:
+            json.dump(player_accounts, f, indent=4)
+        
+        print(f"INFO: Player '{player_name}' paid ${purchase_amount} to Treasurer for purchase")
     
     # Save updated database back to file
     with open(player_database_file, 'w', encoding='utf-8') as f:
@@ -204,14 +275,45 @@ def assign_asset_to_player(player_database_file: str = "Player_database.json", *
     return player_database
 
 
-def process_rent_payment(*, paying_player: str, receiving_player: str, rent_amount: int) -> None:
+def process_rent_payment(player_accounts_file: str, *, paying_player: str, receiving_player: str, rent_amount: int) -> None:
     """
     Process a rent payment transaction between two players.
-    This is a dummy function that prints a transaction message.
+    Updates the player accounts JSON file with the transaction details.
     
     Args:
+        player_accounts_file: Path to the player accounts JSON file
         paying_player: Name of the player paying rent
         receiving_player: Name of the player receiving rent
         rent_amount: Amount of rent to be paid
     """
+    # Load player accounts database
+    if os.path.exists(player_accounts_file):
+        with open(player_accounts_file, 'r', encoding='utf-8') as f:
+            player_accounts = json.load(f)
+    else:
+        player_accounts = {}
+        print(f"INFO: Created new player accounts database (file '{player_accounts_file}' did not exist)")
+    
+    # Ensure both players have account entries
+    if paying_player not in player_accounts:
+        player_accounts[paying_player] = []
+    if receiving_player not in player_accounts:
+        player_accounts[receiving_player] = []
+    
+    # Add negative transaction to paying player's account
+    player_accounts[paying_player].append({
+        "payment amount": -rent_amount,
+        "payment source": receiving_player
+    })
+    
+    # Add positive transaction to receiving player's account
+    player_accounts[receiving_player].append({
+        "payment amount": rent_amount,
+        "payment source": paying_player
+    })
+    
+    # Save updated accounts back to file
+    with open(player_accounts_file, 'w', encoding='utf-8') as f:
+        json.dump(player_accounts, f, indent=4)
+    
     print(f"Player {paying_player} has paid ${rent_amount} to Player {receiving_player}")

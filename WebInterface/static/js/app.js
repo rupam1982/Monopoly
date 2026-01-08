@@ -7,7 +7,7 @@ const API_BASE = '/api';
 
 // DOM Elements - will be initialized after DOM loads
 let playerSelect, playerInput, areaSelect, assetSelect, housesSelect;
-let assignBtn, payRentBtn, resetBtn, refreshBtn;
+let assignBtn, payRentBtn, resetBtn, refreshBtn, startGameBtn;
 let messageArea, messageContent, playerDbContent;
 let errorDetailsBox, errorDetailsContent, closeErrorBox;
 let pythonOutputBox, pythonOutputContent, closeOutputBox;
@@ -33,6 +33,7 @@ async function init() {
     payRentBtn = document.getElementById('pay-rent-btn');
     resetBtn = document.getElementById('reset-btn');
     refreshBtn = document.getElementById('refresh-btn');
+    startGameBtn = document.getElementById('start-game-btn');
     messageArea = document.getElementById('message-area');
     messageContent = document.getElementById('message-content');
     playerDbContent = document.getElementById('player-db-content');
@@ -772,6 +773,7 @@ function setupEventListeners() {
         hidePythonOutput(); // Hide output box when user clicks reset
     });
     refreshBtn.addEventListener('click', loadDatabase);
+    startGameBtn.addEventListener('click', handleStartGame);
     closeErrorBox.addEventListener('click', hideErrorDetails);
     closeOutputBox.addEventListener('click', hidePythonOutput);
 
@@ -781,6 +783,52 @@ function setupEventListeners() {
             handleAssign();
         }
     });
+}
+
+/**
+ * Handle Start Game button click
+ */
+async function handleStartGame() {
+    // Confirm with user
+    const confirmed = confirm('This will reset all player properties and accounts. Are you sure you want to start a new game?');
+
+    if (!confirmed) {
+        return;
+    }
+
+    // Disable button during request
+    startGameBtn.disabled = true;
+    startGameBtn.textContent = 'Starting...';
+
+    try {
+        const response = await fetch(`${API_BASE}/start-game`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+
+        const result = await response.json();
+
+        if (result.error) {
+            showErrorDetails(result.error);
+        } else if (result.message) {
+            showPythonOutput(result.message);
+
+            // Reload the database to reflect changes
+            await loadDatabase();
+            await loadPlayers();
+
+            // Reset the form
+            resetForm();
+        }
+    } catch (error) {
+        showErrorDetails(`Network error: ${error.message}`);
+    } finally {
+        // Re-enable button
+        startGameBtn.disabled = false;
+        startGameBtn.textContent = 'Start Game';
+    }
 }
 
 // Initialize on page load

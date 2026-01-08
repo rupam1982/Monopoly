@@ -13,6 +13,7 @@
         <header>
             <h1>Monopoly Property Management</h1>
             <p class="subtitle">Assign assets and track player ownership</p>
+            <button id="start-game-btn" class="btn-start-game">Start Game</button>
         </header>
 
         <main>
@@ -26,8 +27,7 @@
                         <select id="player-select" class="dropdown">
                             <option value="">-- Select Player --</option>
                         </select>
-                        <input type="text" id="player-input" class="player-input" placeholder="Enter new player name"
-                            style="display: none;">
+                        <input type="text" id="player-input" class="player-input" placeholder="Enter new player name">
                     </div>
 
                     <div class="input-field">
@@ -58,7 +58,7 @@
                 </div>
 
                 <div class="button-group">
-                    <button id="assign-btn" class="btn btn-primary" disabled>Assign Property</button>
+                    <button id="assign-btn" class="btn btn-primary" disabled>Buy Property</button>
                     <button id="pay-rent-btn" class="btn btn-warning" disabled style="display: none;">Pay Rent</button>
                     <span id="rent-message" class="rent-message"></span>
                     <button id="reset-btn" class="btn btn-secondary">Reset</button>

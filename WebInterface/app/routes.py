@@ -7,6 +7,7 @@ from flask import Blueprint, jsonify, request, render_template
 import os
 import io
 import sys
+import json
 from DatabasePackage import (
     assign_asset_to_player,
     get_areas as db_get_areas,
@@ -25,6 +26,7 @@ main = Blueprint('main', __name__)
 WEBINTERFACE_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ASSET_DB = os.path.join(WEBINTERFACE_ROOT, 'DatabaseJson', 'Asset_database.json')
 PLAYER_DB = os.path.join(WEBINTERFACE_ROOT, 'DatabaseJson', 'Player_database.json')
+PLAYER_ACCOUNTS_DB = os.path.join(WEBINTERFACE_ROOT, 'DatabaseJson', 'Player_accounts.json')
 
 
 @api.route('/areas', methods=['GET'])
@@ -93,7 +95,8 @@ def assign_asset():
                 area_name=area_name,
                 asset_name=asset_name,
                 houses=houses,
-                asset_database_file=ASSET_DB
+                asset_database_file=ASSET_DB,
+                player_accounts_file=PLAYER_ACCOUNTS_DB
             )
             
             # Restore stdout and get the output
@@ -138,6 +141,29 @@ def get_database_state():
     return jsonify(database_state)
 
 
+@api.route('/start-game', methods=['POST'])
+def start_game():
+    """
+    Reset the game by clearing player database and player accounts completely.
+    """
+    try:
+        # Reset Player_database.json to empty
+        with open(PLAYER_DB, 'w', encoding='utf-8') as f:
+            json.dump({}, f, indent=2)
+        
+        # Reset Player_accounts.json to empty
+        with open(PLAYER_ACCOUNTS_DB, 'w', encoding='utf-8') as f:
+            json.dump({}, f, indent=4)
+        
+        return jsonify({
+            'status': 'success',
+            'message': 'Game started! All player properties and accounts have been reset.'
+        })
+    
+    except Exception as e:
+        return jsonify({'error': f'Failed to start game: {str(e)}'}), 500
+
+
 @api.route('/pay-rent', methods=['POST'])
 def pay_rent():
     """
@@ -171,6 +197,7 @@ def pay_rent():
         try:
             # Call the process_rent_payment function
             process_rent_payment(
+                PLAYER_ACCOUNTS_DB,
                 paying_player=paying_player,
                 receiving_player=receiving_player,
                 rent_amount=rent_amount
