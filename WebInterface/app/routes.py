@@ -27,6 +27,7 @@ WEBINTERFACE_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ASSET_DB = os.path.join(WEBINTERFACE_ROOT, 'DatabaseJson', 'Asset_database.json')
 PLAYER_DB = os.path.join(WEBINTERFACE_ROOT, 'DatabaseJson', 'Player_database.json')
 PLAYER_ACCOUNTS_DB = os.path.join(WEBINTERFACE_ROOT, 'DatabaseJson', 'Player_accounts.json')
+COMMERCIAL_PROPERTIES_DB = os.path.join(WEBINTERFACE_ROOT, 'DatabaseJson', 'Commercial_properties.json')
 
 
 @api.route('/areas', methods=['GET'])
@@ -54,6 +55,38 @@ def get_players():
     """Get all existing players from player database"""
     players = db_get_players()
     return jsonify({'players': players})
+
+
+@api.route('/commercial-asset-types', methods=['GET'])
+def get_commercial_asset_types():
+    """Get all asset types from commercial properties database"""
+    try:
+        with open(COMMERCIAL_PROPERTIES_DB, 'r', encoding='utf-8') as f:
+            commercial_db = json.load(f)
+        asset_types = list(commercial_db.keys())
+        return jsonify({'asset_types': asset_types})
+    except FileNotFoundError:
+        return jsonify({'error': 'Commercial properties database not found'}), 404
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@api.route('/commercial-assets/<asset_type>', methods=['GET'])
+def get_commercial_assets(asset_type):
+    """Get all commercial assets in a specific type"""
+    try:
+        with open(COMMERCIAL_PROPERTIES_DB, 'r', encoding='utf-8') as f:
+            commercial_db = json.load(f)
+        
+        if asset_type not in commercial_db:
+            return jsonify({'error': f'Asset type "{asset_type}" not found'}), 404
+        
+        assets = list(commercial_db[asset_type].keys())
+        return jsonify({'assets': assets})
+    except FileNotFoundError:
+        return jsonify({'error': 'Commercial properties database not found'}), 404
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 
 @api.route('/assign', methods=['POST'])
@@ -220,6 +253,95 @@ def pay_rent():
         return jsonify({'error': str(e)}), 400
     except Exception as e:
         return jsonify({'error': f'Unexpected error: {str(e)}'}), 500
+
+
+@api.route('/buy-utility', methods=['POST'])
+def buy_utility():
+    """
+    Assign a utility/transport asset to a player
+    Expects JSON payload with: player_name, asset_type, asset_name
+    """
+    data = request.get_json()
+    
+    # Validate required fields
+    required_fields = ['player_name', 'asset_type', 'asset_name']
+    if not all(field in data for field in required_fields):
+        return jsonify({'error': 'Missing required fields'}), 400
+    
+    try:
+        player_name = str(data['player_name']).strip()
+        asset_type = str(data['asset_type']).strip()
+        asset_name = str(data['asset_name']).strip()
+        
+        # Validate inputs
+        if not player_name or not asset_type or not asset_name:
+            return jsonify({'error': 'Player, asset type, and asset name cannot be empty'}), 400
+        
+        # Load player database
+        try:
+            with open(PLAYER_DB, 'r', encoding='utf-8') as f:
+                player_db = json.load(f)
+        except FileNotFoundError:
+            player_db = {}
+        
+        # Check if asset is already owned by another player
+        for player, assets in player_db.items():
+            if asset_type in assets and asset_name in assets[asset_type]:
+                if player != player_name:
+                    return jsonify({
+                        'status': 'error',
+                        'message': f'ERROR: Asset "{asset_name}" in "{asset_type}" is already owned by {player}'
+                    })
+        
+        # Initialize player if not exists
+        if player_name not in player_db:
+            player_db[player_name] = {}
+        
+        # Initialize asset type if not exists
+        if asset_type not in player_db[player_name]:
+            player_db[player_name][asset_type] = {}
+        
+        # Assign the utility (empty object, no houses for utilities)
+        player_db[player_name][asset_type][asset_name] = {}
+        
+        # Save player database
+        with open(PLAYER_DB, 'w', encoding='utf-8') as f:
+            json.dump(player_db, f, indent=2)
+        
+        return jsonify({
+            'status': 'success',
+            'message': f'SUCCESS: {player_name} purchased {asset_name} from {asset_type}'
+        })
+    
+    except ValueError as e:
+        return jsonify({'error': str(e)}), 400
+    except Exception as e:
+        return jsonify({'error': f'Unexpected error: {str(e)}'}), 500
+
+
+@api.route('/transactions', methods=['GET'])
+def get_transactions():
+    """Get all transaction records from player accounts"""
+    try:
+        with open(PLAYER_ACCOUNTS_DB, 'r', encoding='utf-8') as f:
+            accounts = json.load(f)
+        
+        # Transform data into flat list with player name
+        transactions = []
+        for player, player_transactions in accounts.items():
+            for transaction in player_transactions:
+                transactions.append({
+                    'player': player,
+                    'amount': transaction.get('payment amount', 0),
+                    'source': transaction.get('payment source', '')
+                })
+        
+        return jsonify({'transactions': transactions})
+    
+    except FileNotFoundError:
+        return jsonify({'transactions': []})
+    except Exception as e:
+        return jsonify({'error': f'Failed to load transactions: {str(e)}'}), 500
 
 
 @main.route('/', methods=['GET'])

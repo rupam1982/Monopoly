@@ -19,81 +19,153 @@
         <main>
             <!-- Asset Assignment Section -->
             <section class="assignment-section">
-                <h2>Player Property Action</h2>
-
-                <div class="input-group">
-                    <div class="input-field">
-                        <label for="player-select">Player</label>
-                        <select id="player-select" class="dropdown">
-                            <option value="">-- Select Player --</option>
-                        </select>
-                        <input type="text" id="player-input" class="player-input" placeholder="Enter new player name">
+                <h2>Anti-monopoly Board Move</h2>
+                <div class="tab-container">
+                    <div class="tab-buttons">
+                        <button class="tab-btn active" data-tab="property-action">Property Action</button>
+                        <button class="tab-btn" data-tab="utility-action">Utility Action</button>
                     </div>
+                    <div class="tab-content-wrapper">
+                        <!-- Property Action Tab -->
+                        <div id="property-action-tab" class="tab-content active">
+                            <h3 class="tab-title">Player Property Action</h3>
 
-                    <div class="input-field">
-                        <label for="area-select">Area (Street)</label>
-                        <select id="area-select" class="dropdown" disabled>
-                            <option value="">-- Select Area --</option>
-                        </select>
+                            <div class="input-group">
+                                <div class="input-field">
+                                    <label for="player-select">Player</label>
+                                    <select id="player-select" class="dropdown">
+                                        <option value="">-- Select Player --</option>
+                                    </select>
+                                    <input type="text" id="player-input" class="player-input"
+                                        placeholder="Enter new player name">
+                                </div>
+
+                                <div class="input-field">
+                                    <label for="area-select">Area (Street)</label>
+                                    <select id="area-select" class="dropdown" disabled>
+                                        <option value="">-- Select Area --</option>
+                                    </select>
+                                </div>
+
+                                <div class="input-field">
+                                    <label for="asset-select">Property</label>
+                                    <select id="asset-select" class="dropdown" disabled>
+                                        <option value="">-- Select Property --</option>
+                                    </select>
+                                </div>
+
+                                <div class="input-field">
+                                    <label for="houses-select">Houses</label>
+                                    <select id="houses-select" class="dropdown" disabled>
+                                        <option value="">-- Select Houses --</option>
+                                        <option value="0">0 Houses</option>
+                                        <option value="1">1 House</option>
+                                        <option value="2">2 Houses</option>
+                                        <option value="3">3 Houses</option>
+                                        <option value="4">4 Houses</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="button-group">
+                                <button id="assign-btn" class="btn btn-primary" disabled>Buy Property</button>
+                                <button id="pay-rent-btn" class="btn btn-warning" disabled style="display: none;">Pay
+                                    Rent</button>
+                                <span id="rent-message" class="rent-message"></span>
+                                <button id="reset-btn" class="btn btn-secondary">Reset</button>
+                            </div>
+
+                            <div id="message-area" class="message-area" style="display: none;">
+                                <div id="message-content"></div>
+                            </div>
+
+                            <!-- Error Details Box -->
+                            <div id="error-details-box" class="error-details-box" style="display: none;">
+                                <div class="error-header">
+                                    <span>⚠️ Error Details</span>
+                                    <button id="close-error-box" class="close-btn">&times;</button>
+                                </div>
+                                <div id="error-details-content" class="error-content"></div>
+                            </div>
+
+                            <!-- Python Output Box -->
+                            <div id="python-output-box" class="python-output-box" style="display: none;">
+                                <div class="output-header">
+                                    <span>🐍 Python Output</span>
+                                    <button id="close-output-box" class="close-btn">&times;</button>
+                                </div>
+                                <div id="python-output-content" class="output-content"></div>
+                            </div>
+                        </div>
+
+                        <!-- Utility Action Tab -->
+                        <div id="utility-action-tab" class="tab-content">
+                            <h3 class="tab-title">Utility Action</h3>
+
+                            <div class="input-group">
+                                <div class="input-field">
+                                    <label for="utility-player-select">Player</label>
+                                    <select id="utility-player-select" class="dropdown">
+                                        <option value="">-- Select Player --</option>
+                                    </select>
+                                    <input type="text" id="utility-player-input" class="player-input"
+                                        placeholder="Enter new player name">
+                                </div>
+
+                                <div class="input-field">
+                                    <label for="asset-type-select">Asset Type</label>
+                                    <select id="asset-type-select" class="dropdown" disabled>
+                                        <option value="">-- Select Asset Type --</option>
+                                    </select>
+                                </div>
+
+                                <div class="input-field">
+                                    <label for="commercial-asset-select">Asset Name</label>
+                                    <select id="commercial-asset-select" class="dropdown" disabled>
+                                        <option value="">-- Select Asset Name --</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="button-group">
+                                <button id="utility-buy-btn" class="btn btn-primary" disabled>Buy</button>
+                                <button id="utility-reset-btn" class="btn btn-secondary">Reset</button>
+                            </div>
+                        </div>
                     </div>
-
-                    <div class="input-field">
-                        <label for="asset-select">Property</label>
-                        <select id="asset-select" class="dropdown" disabled>
-                            <option value="">-- Select Property --</option>
-                        </select>
-                    </div>
-
-                    <div class="input-field">
-                        <label for="houses-select">Houses</label>
-                        <select id="houses-select" class="dropdown" disabled>
-                            <option value="">-- Select Houses --</option>
-                            <option value="0">0 Houses</option>
-                            <option value="1">1 House</option>
-                            <option value="2">2 Houses</option>
-                            <option value="3">3 Houses</option>
-                            <option value="4">4 Houses</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="button-group">
-                    <button id="assign-btn" class="btn btn-primary" disabled>Buy Property</button>
-                    <button id="pay-rent-btn" class="btn btn-warning" disabled style="display: none;">Pay Rent</button>
-                    <span id="rent-message" class="rent-message"></span>
-                    <button id="reset-btn" class="btn btn-secondary">Reset</button>
-                </div>
-
-                <div id="message-area" class="message-area" style="display: none;">
-                    <div id="message-content"></div>
-                </div>
-
-                <!-- Error Details Box -->
-                <div id="error-details-box" class="error-details-box" style="display: none;">
-                    <div class="error-header">
-                        <span>⚠️ Error Details</span>
-                        <button id="close-error-box" class="close-btn">&times;</button>
-                    </div>
-                    <div id="error-details-content" class="error-content"></div>
-                </div>
-
-                <!-- Python Output Box -->
-                <div id="python-output-box" class="python-output-box" style="display: none;">
-                    <div class="output-header">
-                        <span>🐍 Python Output</span>
-                        <button id="close-output-box" class="close-btn">&times;</button>
-                    </div>
-                    <div id="python-output-content" class="output-content"></div>
                 </div>
             </section>
 
             <!-- Database State Section -->
             <section class="database-section">
-                <h2>Player Property Inventory</h2>
-                <div class="database-viewer">
-                    <div class="db-panel">
-                        <div id="player-db-content" class="db-content">
-                            <p class="loading">Loading...</p>
+                <h2>Player Accounts and Properties</h2>
+                <div class="tab-container">
+                    <div class="tab-buttons">
+                        <button class="tab-btn active" data-tab="assets">Assets</button>
+                        <button class="tab-btn" data-tab="transactions">Transactions</button>
+                    </div>
+                    <div class="tab-content-wrapper">
+                        <!-- Assets Tab -->
+                        <div id="assets-tab" class="tab-content active">
+                            <h3 class="tab-title">Player Property Inventory</h3>
+                            <div class="database-viewer">
+                                <div class="db-panel">
+                                    <div id="player-db-content" class="db-content">
+                                        <p class="loading">Loading...</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Transactions Tab -->
+                        <div id="transactions-tab" class="tab-content">
+                            <h3 class="tab-title">Transaction Line Items</h3>
+                            <div class="database-viewer">
+                                <div class="db-panel">
+                                    <div id="transactions-content" class="db-content">
+                                        <p class="loading">Loading...</p>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

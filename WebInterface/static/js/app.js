@@ -13,11 +13,20 @@ let errorDetailsBox, errorDetailsContent, closeErrorBox;
 let pythonOutputBox, pythonOutputContent, closeOutputBox;
 let rentMessage;
 
+// Utility Action elements
+let utilityPlayerSelect, utilityPlayerInput, assetTypeSelect, commercialAssetSelect;
+let utilityResetBtn, utilityBuyBtn;
+
 // State
 let availableAreas = [];
 let assetsByArea = {};
 let selectedArea = null;
 let currentPlayerDb = {}; // Store current database for dynamic filtering
+
+// Utility Action state
+let availableAssetTypes = [];
+let commercialAssetsByType = {};
+let selectedAssetType = null;
 
 /**
  * Initialize the application
@@ -49,10 +58,20 @@ async function init() {
     console.log('Error box element:', errorDetailsBox);
     console.log('Python output box element:', pythonOutputBox);
 
+    // Initialize Utility Action DOM elements
+    utilityPlayerSelect = document.getElementById('utility-player-select');
+    utilityPlayerInput = document.getElementById('utility-player-input');
+    assetTypeSelect = document.getElementById('asset-type-select');
+    commercialAssetSelect = document.getElementById('commercial-asset-select');
+    utilityResetBtn = document.getElementById('utility-reset-btn');
+    utilityBuyBtn = document.getElementById('utility-buy-btn');
+
     await loadAreas();
     await loadPlayers();
+    await loadAssetTypes();
     await loadDatabase();
     setupEventListeners();
+    setupTabSwitching();
 }
 
 /**
@@ -109,8 +128,56 @@ async function loadPlayers() {
         otherOption.value = '__new_player__';
         otherOption.textContent = '+ Add New Player';
         playerSelect.appendChild(otherOption);
+
+        // Populate utility player dropdown
+        if (utilityPlayerSelect) {
+            utilityPlayerSelect.innerHTML = '<option value="">-- Select Player --</option>';
+            players.forEach(player => {
+                const option = document.createElement('option');
+                option.value = player;
+                option.textContent = player;
+                utilityPlayerSelect.appendChild(option);
+            });
+
+            // Add "New Player" option
+            const newUtilityPlayerOption = document.createElement('option');
+            newUtilityPlayerOption.value = '__new_player__';
+            newUtilityPlayerOption.textContent = '+ Add New Player';
+            utilityPlayerSelect.appendChild(newUtilityPlayerOption);
+        }
     } catch (error) {
         showMessage('error', `Failed to load players: ${error.message}`);
+    }
+}
+
+/**
+ * Load all asset types from commercial properties
+ */
+async function loadAssetTypes() {
+    try {
+        const response = await fetch(`${API_BASE}/commercial-asset-types`);
+        const data = await response.json();
+        availableAssetTypes = data.asset_types || [];
+
+        // Pre-load commercial assets for all types
+        for (const assetType of availableAssetTypes) {
+            await loadCommercialAssetsForType(assetType);
+        }
+    } catch (error) {
+        console.error('Failed to load asset types:', error);
+    }
+}
+
+/**
+ * Load commercial assets for a specific asset type
+ */
+async function loadCommercialAssetsForType(assetType) {
+    try {
+        const response = await fetch(`${API_BASE}/commercial-assets/${encodeURIComponent(assetType)}`);
+        const data = await response.json();
+        commercialAssetsByType[assetType] = data.assets || [];
+    } catch (error) {
+        console.error(`Failed to load commercial assets for ${assetType}:`, error);
     }
 }
 
@@ -139,6 +206,35 @@ function populateAssetDropdown() {
             option.value = asset;
             option.textContent = asset;
             assetSelect.appendChild(option);
+        });
+    }
+}
+
+/**
+ * Populate asset type dropdown for utility action
+ */
+function populateAssetTypeDropdown() {
+    assetTypeSelect.innerHTML = '<option value="">-- Select Asset Type --</option>';
+    availableAssetTypes.forEach(assetType => {
+        const option = document.createElement('option');
+        option.value = assetType;
+        option.textContent = assetType;
+        assetTypeSelect.appendChild(option);
+    });
+}
+
+/**
+ * Populate commercial asset dropdown based on selected asset type
+ */
+function populateCommercialAssetDropdown() {
+    commercialAssetSelect.innerHTML = '<option value="">-- Select Asset Name --</option>';
+
+    if (selectedAssetType && commercialAssetsByType[selectedAssetType]) {
+        commercialAssetsByType[selectedAssetType].forEach(asset => {
+            const option = document.createElement('option');
+            option.value = asset;
+            option.textContent = asset;
+            commercialAssetSelect.appendChild(option);
         });
     }
 }
@@ -566,6 +662,9 @@ async function calculateRent(area, asset, houses) {
 /**
  * Load and display the database state
  */
+/**
+ * Load and display player database
+ */
 async function loadDatabase() {
     try {
         const response = await fetch(`${API_BASE}/database`);
@@ -655,9 +754,174 @@ async function loadDatabase() {
             // Setup filter listeners
             setupTableFilters(playerDb);
         }
+
+        // Also load transactions
+        await loadTransactions();
     } catch (error) {
         playerDbContent.innerHTML = `<p class="error">Failed to load database: ${error.message}</p>`;
     }
+}
+
+/**
+ * Load and display transactions
+ */
+async function loadTransactions() {
+    const transactionsContent = document.getElementById('transactions-content');
+
+    try {
+        const response = await fetch(`${API_BASE}/transactions`);
+        const data = await response.json();
+        const transactions = data.transactions || [];
+
+        if (transactions.length === 0) {
+            transactionsContent.innerHTML = '<p class="empty">No transactions recorded yet.</p>';
+        } else {
+            // Collect unique players and sources for filtering
+            const uniquePlayers = new Set();
+            const uniqueSources = new Set();
+
+            transactions.forEach(t => {
+                uniquePlayers.add(t.player);
+                uniqueSources.add(t.source);
+            });
+
+            // Build dropdown options
+            const playerOptions = Array.from(uniquePlayers).sort().map(p =>
+                `<option value="${escapeHtml(p)}">${escapeHtml(p)}</option>`
+            ).join('');
+
+            const sourceOptions = Array.from(uniqueSources).sort().map(s =>
+                `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`
+            ).join('');
+
+            // Build table
+            let tableHTML = `
+                <table class="db-table" id="transactions-table">
+                    <thead>
+                        <tr>
+                            <th class="text-left">Player Name</th>
+                            <th class="text-center">Transaction Amount</th>
+                            <th class="text-left">Source</th>
+                        </tr>
+                        <tr class="filter-row">
+                            <th>
+                                <select class="table-filter" id="filter-txn-player">
+                                    <option value="">All Players</option>
+                                    ${playerOptions}
+                                </select>
+                            </th>
+                            <th></th>
+                            <th>
+                                <select class="table-filter" id="filter-txn-source">
+                                    <option value="">All Sources</option>
+                                    ${sourceOptions}
+                                </select>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody id="transactions-table-body">
+            `;
+
+            // Add transaction rows
+            transactions.forEach(txn => {
+                const amountClass = txn.amount >= 0 ? 'positive' : 'negative';
+                tableHTML += `
+                    <tr>
+                        <td data-label="player" class="text-left">${escapeHtml(txn.player)}</td>
+                        <td data-label="amount" class="text-center ${amountClass}">${txn.amount}</td>
+                        <td data-label="source" class="text-left">${escapeHtml(txn.source)}</td>
+                    </tr>
+                `;
+            });
+
+            tableHTML += `
+                    </tbody>
+                </table>
+            `;
+
+            transactionsContent.innerHTML = tableHTML;
+
+            // Setup filter listeners for transactions
+            setupTransactionFilters();
+        }
+    } catch (error) {
+        transactionsContent.innerHTML = `<p class="error">Failed to load transactions: ${error.message}</p>`;
+    }
+}
+
+/**
+ * Setup transaction table filter functionality
+ */
+function setupTransactionFilters() {
+    const filterInputs = {
+        player: document.getElementById('filter-txn-player'),
+        source: document.getElementById('filter-txn-source')
+    };
+
+    // Add event listeners
+    if (filterInputs.player) {
+        filterInputs.player.addEventListener('change', () => filterTransactionTable(filterInputs));
+    }
+    if (filterInputs.source) {
+        filterInputs.source.addEventListener('change', () => filterTransactionTable(filterInputs));
+    }
+}
+
+/**
+ * Filter the transaction table based on selected filters
+ */
+function filterTransactionTable(filterInputs) {
+    const selectedPlayer = filterInputs.player ? filterInputs.player.value : '';
+    const selectedSource = filterInputs.source ? filterInputs.source.value : '';
+    const tableBody = document.getElementById('transactions-table-body');
+
+    if (!tableBody) return;
+
+    const rows = tableBody.getElementsByTagName('tr');
+
+    for (let row of rows) {
+        const playerCell = row.querySelector('[data-label="player"]');
+        const sourceCell = row.querySelector('[data-label="source"]');
+
+        if (!playerCell || !sourceCell) continue;
+
+        const playerText = playerCell.textContent;
+        const sourceText = sourceCell.textContent;
+
+        const matchesPlayer = !selectedPlayer || playerText === selectedPlayer;
+        const matchesSource = !selectedSource || sourceText === selectedSource;
+
+        if (matchesPlayer && matchesSource) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    }
+}
+
+/**
+ * Setup tab switching functionality
+ */
+function setupTabSwitching() {
+    const tabButtons = document.querySelectorAll('.tab-btn');
+    const tabContents = document.querySelectorAll('.tab-content');
+
+    tabButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const tabName = button.getAttribute('data-tab');
+
+            // Remove active class from all buttons and contents
+            tabButtons.forEach(btn => btn.classList.remove('active'));
+            tabContents.forEach(content => content.classList.remove('active'));
+
+            // Add active class to clicked button and corresponding content
+            button.classList.add('active');
+            const activeTab = document.getElementById(`${tabName}-tab`);
+            if (activeTab) {
+                activeTab.classList.add('active');
+            }
+        });
+    });
 }
 
 /**
@@ -757,6 +1021,167 @@ function filterTable(filterInputs) {
 }
 
 /**
+ * Handle utility player selection change
+ */
+function handleUtilityPlayerChange() {
+    if (utilityPlayerSelect.value === '__new_player__') {
+        utilityPlayerInput.classList.add('active');
+        utilityPlayerInput.focus();
+    } else {
+        utilityPlayerInput.classList.remove('active');
+        utilityPlayerInput.value = '';
+    }
+
+    // Enable asset type dropdown after player selection
+    if (utilityPlayerSelect.value) {
+        assetTypeSelect.disabled = false;
+        populateAssetTypeDropdown();
+    } else {
+        assetTypeSelect.disabled = true;
+        commercialAssetSelect.disabled = true;
+    }
+
+    updateUtilityBuyButtonState();
+}
+
+/**
+ * Handle utility player input change
+ */
+function handleUtilityPlayerInputChange() {
+    if (utilityPlayerInput.value.trim()) {
+        assetTypeSelect.disabled = false;
+        populateAssetTypeDropdown();
+    }
+
+    updateUtilityBuyButtonState();
+}
+
+/**
+ * Handle asset type selection change
+ */
+function handleAssetTypeChange() {
+    selectedAssetType = assetTypeSelect.value;
+
+    if (selectedAssetType) {
+        commercialAssetSelect.disabled = false;
+        populateCommercialAssetDropdown();
+    } else {
+        commercialAssetSelect.disabled = true;
+        commercialAssetSelect.value = '';
+    }
+
+    updateUtilityBuyButtonState();
+}
+
+/**
+ * Handle commercial asset selection change
+ */
+function handleCommercialAssetChange() {
+    updateUtilityBuyButtonState();
+}
+
+/**
+ * Update utility buy button state
+ */
+function updateUtilityBuyButtonState() {
+    const playerSelected = utilityPlayerSelect.value && utilityPlayerSelect.value !== '__new_player__';
+    const newPlayerFilled = utilityPlayerSelect.value === '__new_player__' && utilityPlayerInput.value.trim();
+    const playerOk = playerSelected || newPlayerFilled;
+
+    const assetTypeSelected = assetTypeSelect.value;
+    const assetSelected = commercialAssetSelect.value;
+
+    if (playerOk && assetTypeSelected && assetSelected) {
+        utilityBuyBtn.disabled = false;
+    } else {
+        utilityBuyBtn.disabled = true;
+    }
+}
+
+/**
+ * Handle utility buy button click
+ */
+async function handleUtilityBuy() {
+    const playerName = utilityPlayerSelect.value === '__new_player__'
+        ? utilityPlayerInput.value.trim()
+        : utilityPlayerSelect.value;
+    const assetType = assetTypeSelect.value;
+    const assetName = commercialAssetSelect.value;
+
+    if (!playerName || !assetType || !assetName) {
+        showMessage('error', 'Please fill in all fields');
+        return;
+    }
+
+    // Disable button during request
+    utilityBuyBtn.disabled = true;
+    utilityBuyBtn.textContent = 'Buying...';
+
+    try {
+        const response = await fetch(`${API_BASE}/buy-utility`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                player_name: playerName,
+                asset_type: assetType,
+                asset_name: assetName
+            })
+        });
+
+        const data = await response.json();
+
+        // Show the message
+        if (data.message) {
+            showPythonOutput(data.message);
+        }
+
+        // Show in error details for errors
+        if (data.status === 'error') {
+            if (data.message) {
+                showErrorDetails(data.message);
+            }
+        }
+
+        // Refresh players and database after successful purchase
+        if (response.ok && data.status !== 'error') {
+            setTimeout(async () => {
+                await loadPlayers();
+                await loadDatabase();
+                resetUtilityForm();
+            }, 1500);
+        } else {
+            utilityBuyBtn.disabled = false;
+            utilityBuyBtn.textContent = 'Buy';
+        }
+    } catch (error) {
+        const errorMsg = `Purchase failed: ${error.message}`;
+        showErrorDetails(`Network Error:\n${error.message}`);
+        utilityBuyBtn.disabled = false;
+        utilityBuyBtn.textContent = 'Buy';
+    }
+}
+
+/**
+ * Reset utility action form
+ */
+function resetUtilityForm() {
+    utilityPlayerSelect.value = '';
+    utilityPlayerInput.value = '';
+    utilityPlayerInput.classList.remove('active');
+    assetTypeSelect.value = '';
+    assetTypeSelect.disabled = true;
+    commercialAssetSelect.value = '';
+    commercialAssetSelect.disabled = true;
+    selectedAssetType = null;
+    if (utilityBuyBtn) {
+        utilityBuyBtn.disabled = true;
+        utilityBuyBtn.textContent = 'Buy';
+    }
+}
+
+/**
  * Setup all event listeners
  */
 function setupEventListeners() {
@@ -783,6 +1208,26 @@ function setupEventListeners() {
             handleAssign();
         }
     });
+
+    // Utility Action tab event listeners
+    if (utilityPlayerSelect) {
+        utilityPlayerSelect.addEventListener('change', handleUtilityPlayerChange);
+    }
+    if (utilityPlayerInput) {
+        utilityPlayerInput.addEventListener('input', handleUtilityPlayerInputChange);
+    }
+    if (assetTypeSelect) {
+        assetTypeSelect.addEventListener('change', handleAssetTypeChange);
+    }
+    if (commercialAssetSelect) {
+        commercialAssetSelect.addEventListener('change', handleCommercialAssetChange);
+    }
+    if (utilityBuyBtn) {
+        utilityBuyBtn.addEventListener('click', handleUtilityBuy);
+    }
+    if (utilityResetBtn) {
+        utilityResetBtn.addEventListener('click', resetUtilityForm);
+    }
 }
 
 /**

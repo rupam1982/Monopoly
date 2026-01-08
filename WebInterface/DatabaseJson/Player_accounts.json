@@ -27,6 +27,10 @@
         {
             "payment amount": 70,
             "payment source": "Player 2"
+        },
+        {
+            "payment amount": -40,
+            "payment source": "Player 2"
         }
     ],
     "Player 2": [
@@ -44,6 +48,10 @@
         },
         {
             "payment amount": -70,
+            "payment source": "Player 1"
+        },
+        {
+            "payment amount": 40,
             "payment source": "Player 1"
         }
     ]

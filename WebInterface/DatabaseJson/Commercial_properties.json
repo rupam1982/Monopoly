@@ -1,0 +1,48 @@
+{
+    "Utilities": {
+        "Electric Company": {
+            "price": 150,
+            "multiplier": {
+                "1 owned": 4,
+                "2 owned": 10
+            }
+        },
+        "Water Works": {
+            "price": 150,
+            "multiplier": {
+                "1 owned": 4,
+                "2 owned": 10
+            }
+        }
+    },
+    "Transport": {
+        "Reading Railroad": {
+            "price": 200,
+            "ticket": {
+                "1 owned": 25,
+                "2 owned": 50
+            }
+        },
+        "Pennsylvania Railroad": {
+            "price": 200,
+            "ticket": {
+                "1 owned": 25,
+                "2 owned": 50
+            }
+        },
+        "B&O Railroad": {
+            "price": 200,
+            "ticket": {
+                "1 owned": 25,
+                "2 owned": 50
+            }
+        },
+        "Short Line": {
+            "price": 200,
+            "ticket": {
+                "1 owned": 25,
+                "2 owned": 50
+            }
+        }
+    }
+}
