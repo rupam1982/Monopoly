@@ -9,28 +9,28 @@
             "payment source": "Treasurer"
         },
         {
-            "payment amount": -50,
+            "payment amount": -200,
             "payment source": "Treasurer"
         },
         {
-            "payment amount": -160,
+            "payment amount": -200,
             "payment source": "Treasurer"
         },
         {
-            "payment amount": -400,
-            "payment source": "Treasurer"
-        },
-        {
-            "payment amount": -110,
-            "payment source": "Treasurer"
-        },
-        {
-            "payment amount": 70,
+            "payment amount": 160,
             "payment source": "Player 2"
         },
         {
-            "payment amount": -40,
+            "payment amount": 160,
+            "payment source": "Player 3"
+        },
+        {
+            "payment amount": 160,
             "payment source": "Player 2"
+        },
+        {
+            "payment amount": 160,
+            "payment source": "Player 4"
         }
     ],
     "Player 2": [
@@ -39,19 +39,31 @@
             "payment source": "Treasurer"
         },
         {
-            "payment amount": -250,
-            "payment source": "Treasurer"
-        },
-        {
-            "payment amount": -325,
-            "payment source": "Treasurer"
-        },
-        {
-            "payment amount": -70,
+            "payment amount": -160,
             "payment source": "Player 1"
         },
         {
-            "payment amount": 40,
+            "payment amount": -160,
+            "payment source": "Player 1"
+        }
+    ],
+    "Player 3": [
+        {
+            "payment amount": 1500,
+            "payment source": "Treasurer"
+        },
+        {
+            "payment amount": -160,
+            "payment source": "Player 1"
+        }
+    ],
+    "Player 4": [
+        {
+            "payment amount": 1500,
+            "payment source": "Treasurer"
+        },
+        {
+            "payment amount": -160,
             "payment source": "Player 1"
         }
     ]

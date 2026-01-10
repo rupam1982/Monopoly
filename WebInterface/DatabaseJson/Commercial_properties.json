@@ -7,7 +7,7 @@
                 "2 owned": 10
             }
         },
-        "Water Works": {
+        "Gas Company": {
             "price": 150,
             "multiplier": {
                 "1 owned": 4,
@@ -16,32 +16,40 @@
         }
     },
     "Transport": {
-        "Reading Railroad": {
+        "Railroad": {
             "price": 200,
             "ticket": {
-                "1 owned": 25,
-                "2 owned": 50
+                "1 owned": 40,
+                "2 owned": 80,
+                "3 owned": 160,
+                "4 owned": 320
             }
         },
-        "Pennsylvania Railroad": {
+        "Bus Company": {
             "price": 200,
             "ticket": {
-                "1 owned": 25,
-                "2 owned": 50
+                "1 owned": 40,
+                "2 owned": 80,
+                "3 owned": 160,
+                "4 owned": 320
             }
         },
-        "B&O Railroad": {
+        "Airline": {
             "price": 200,
             "ticket": {
-                "1 owned": 25,
-                "2 owned": 50
+                "1 owned": 40,
+                "2 owned": 80,
+                "3 owned": 160,
+                "4 owned": 320
             }
         },
-        "Short Line": {
+        "Truck Company": {
             "price": 200,
             "ticket": {
-                "1 owned": 25,
-                "2 owned": 50
+                "1 owned": 40,
+                "2 owned": 80,
+                "3 owned": 160,
+                "4 owned": 320
             }
         }
     }

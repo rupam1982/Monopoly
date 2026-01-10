@@ -294,11 +294,45 @@ def process_rent_payment(player_accounts_file: str, *, paying_player: str, recei
         player_accounts = {}
         print(f"INFO: Created new player accounts database (file '{player_accounts_file}' did not exist)")
     
-    # Ensure both players have account entries
+    # Ensure both players have account entries with initial balance
     if paying_player not in player_accounts:
-        player_accounts[paying_player] = []
+        player_accounts[paying_player] = [
+            {
+                "payment amount": 1500,
+                "payment source": "Treasurer"
+            }
+        ]
+        print(f"INFO: Initialized player '{paying_player}' with $1500 starting balance")
+    
     if receiving_player not in player_accounts:
-        player_accounts[receiving_player] = []
+        player_accounts[receiving_player] = [
+            {
+                "payment amount": 1500,
+                "payment source": "Treasurer"
+            }
+        ]
+        print(f"INFO: Initialized player '{receiving_player}' with $1500 starting balance")
+    
+    # Also ensure players exist in player database (with empty assets)
+    player_db_file = player_accounts_file.replace('Player_accounts.json', 'Player_database.json')
+    if os.path.exists(player_db_file):
+        with open(player_db_file, 'r', encoding='utf-8') as f:
+            player_db = json.load(f)
+    else:
+        player_db = {}
+    
+    # Initialize players in database if they don't exist
+    if paying_player not in player_db:
+        player_db[paying_player] = {}
+        print(f"INFO: Created player '{paying_player}' entry in player database")
+    
+    if receiving_player not in player_db:
+        player_db[receiving_player] = {}
+        print(f"INFO: Created player '{receiving_player}' entry in player database")
+    
+    # Save player database if changes were made
+    with open(player_db_file, 'w', encoding='utf-8') as f:
+        json.dump(player_db, f, indent=2)
     
     # Add negative transaction to paying player's account
     player_accounts[paying_player].append({

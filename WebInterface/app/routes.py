@@ -293,6 +293,18 @@ def buy_utility():
                         'message': f'ERROR: Asset "{asset_name}" in "{asset_type}" is already owned by {player}'
                     })
         
+        # Load commercial properties database to get price
+        purchase_price = 0
+        try:
+            with open(COMMERCIAL_PROPERTIES_DB, 'r', encoding='utf-8') as f:
+                commercial_db = json.load(f)
+            
+            if asset_type in commercial_db and asset_name in commercial_db[asset_type]:
+                purchase_price = commercial_db[asset_type][asset_name].get('price', 0)
+        except FileNotFoundError:
+            # If commercial properties database not found, proceed without transaction
+            pass
+        
         # Initialize player if not exists
         if player_name not in player_db:
             player_db[player_name] = {}
@@ -308,9 +320,41 @@ def buy_utility():
         with open(PLAYER_DB, 'w', encoding='utf-8') as f:
             json.dump(player_db, f, indent=2)
         
+        # Record purchase transaction in player accounts
+        if purchase_price > 0:
+            # Load player accounts database
+            try:
+                with open(PLAYER_ACCOUNTS_DB, 'r', encoding='utf-8') as f:
+                    player_accounts = json.load(f)
+            except FileNotFoundError:
+                player_accounts = {}
+            
+            # Initialize player account if new player
+            if player_name not in player_accounts:
+                player_accounts[player_name] = [
+                    {
+                        "payment amount": 1500,
+                        "payment source": "Treasurer"
+                    }
+                ]
+            
+            # Add debit transaction (payment to Treasurer)
+            player_accounts[player_name].append({
+                "payment amount": -purchase_price,
+                "payment source": "Treasurer"
+            })
+            
+            # Save updated accounts
+            with open(PLAYER_ACCOUNTS_DB, 'w', encoding='utf-8') as f:
+                json.dump(player_accounts, f, indent=4)
+        
+        success_msg = f'SUCCESS: {player_name} purchased {asset_name} from {asset_type}'
+        if purchase_price > 0:
+            success_msg += f'\nINFO: Player \'{player_name}\' paid ${purchase_price} to Treasurer for purchase'
+        
         return jsonify({
             'status': 'success',
-            'message': f'SUCCESS: {player_name} purchased {asset_name} from {asset_type}'
+            'message': success_msg
         })
     
     except ValueError as e:

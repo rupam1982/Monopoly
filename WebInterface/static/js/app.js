@@ -15,7 +15,7 @@ let rentMessage;
 
 // Utility Action elements
 let utilityPlayerSelect, utilityPlayerInput, assetTypeSelect, commercialAssetSelect;
-let utilityResetBtn, utilityBuyBtn;
+let utilityResetBtn, utilityBuyBtn, utilityPayTicketBtn, utilityTicketMessage;
 
 // State
 let availableAreas = [];
@@ -65,6 +65,8 @@ async function init() {
     commercialAssetSelect = document.getElementById('commercial-asset-select');
     utilityResetBtn = document.getElementById('utility-reset-btn');
     utilityBuyBtn = document.getElementById('utility-buy-btn');
+    utilityPayTicketBtn = document.getElementById('utility-pay-ticket-btn');
+    utilityTicketMessage = document.getElementById('utility-ticket-message');
 
     await loadAreas();
     await loadPlayers();
@@ -282,6 +284,18 @@ function findAssetOwner(area, asset) {
 }
 
 /**
+ * Find owner of a commercial/utility asset
+ */
+function findCommercialAssetOwner(assetType, assetName) {
+    for (const player in currentPlayerDb) {
+        if (currentPlayerDb[player][assetType] && currentPlayerDb[player][assetType][assetName]) {
+            return player;
+        }
+    }
+    return null;
+}
+
+/**
  * Handle player selection change
  */
 function handlePlayerChange() {
@@ -376,7 +390,21 @@ function handleAssetChange() {
 /**
  * Handle houses selection change
  */
-function handleHousesChange() {
+async function handleHousesChange() {
+    // Check if this is a purchase scenario (not paying rent)
+    if (housesSelect.value !== '' && !housesSelect.disabled) {
+        const playerName = playerSelect.value === '__new_player__'
+            ? playerInput.value.trim()
+            : playerSelect.value;
+        const areaName = areaSelect.value;
+        const assetName = assetSelect.value;
+        const houses = parseInt(housesSelect.value);
+
+        if (playerName && areaName && assetName && houses >= 0) {
+            // Display purchase amount message
+            await displayPurchaseMessage(playerName, areaName, assetName, houses);
+        }
+    }
     updateAssignButtonState();
 }
 
@@ -517,8 +545,21 @@ async function handleAssign() {
             }
         }
 
-        // Refresh players and database after successful assignment
+        // Update message with payment confirmation
         if (response.ok && data.status !== 'error') {
+            // Extract payment info from message if available
+            const playerName = playerSelect.value === '__new_player__'
+                ? playerInput.value.trim()
+                : playerSelect.value;
+            const assetName = assetSelect.value;
+            const houses = parseInt(housesSelect.value);
+            const purchaseAmount = await calculatePurchaseAmount(areaSelect.value, assetName, houses);
+
+            if (purchaseAmount > 0) {
+                rentMessage.textContent = `Player "${playerName}" paid $${purchaseAmount} to Treasurer`;
+                rentMessage.style.color = '#2e7d32'; // Green color for success
+            }
+
             setTimeout(async () => {
                 await loadPlayers();
                 await loadDatabase();
@@ -595,6 +636,14 @@ async function handlePayRent() {
         } else if (result.message) {
             // Display the transaction message in the same space as the earlier rent message
             rentMessage.textContent = result.message;
+            rentMessage.style.color = '#2e7d32'; // Green color for success
+
+            // Refresh database and players, then reset form
+            setTimeout(async () => {
+                await loadDatabase();
+                await loadPlayers();
+                resetForm();
+            }, 1500);
         }
     } catch (error) {
         showErrorDetails(`Network error: ${error.message}`);
@@ -657,6 +706,45 @@ async function calculateRent(area, asset, houses) {
         console.error('Error calculating rent:', error);
         return null;
     }
+}
+
+/**
+ * Calculate purchase amount for a property
+ */
+async function calculatePurchaseAmount(area, asset, houses) {
+    try {
+        const response = await fetch(`${API_BASE}/database`);
+        const data = await response.json();
+        const assetDb = data.asset_database || {};
+
+        if (assetDb[area] && assetDb[area][asset]) {
+            const assetInfo = assetDb[area][asset];
+            const landPrice = assetInfo.land_price || 0;
+            const housePrice = assetInfo.house_price || 0;
+            return landPrice + (housePrice * houses);
+        }
+        return null;
+    } catch (error) {
+        console.error('Error calculating purchase amount:', error);
+        return null;
+    }
+}
+
+/**
+ * Display purchase amount preview message for properties
+ */
+async function displayPurchaseMessage(playerName, areaName, assetName, houses) {
+    const purchaseAmount = await calculatePurchaseAmount(areaName, assetName, houses);
+
+    if (purchaseAmount === null) {
+        rentMessage.textContent = 'Could not calculate purchase amount';
+        return;
+    }
+
+    // Display purchase message inline
+    const purchaseMsg = `Player "${playerName}" to pay $${purchaseAmount} to Treasurer for "${assetName}" on "${areaName}" (${houses} houses)`;
+    rentMessage.textContent = purchaseMsg;
+    rentMessage.style.color = '#d32f2f'; // Red color for payment messages
 }
 
 /**
@@ -903,23 +991,28 @@ function filterTransactionTable(filterInputs) {
  * Setup tab switching functionality
  */
 function setupTabSwitching() {
-    const tabButtons = document.querySelectorAll('.tab-btn');
-    const tabContents = document.querySelectorAll('.tab-content');
+    // Get all tab containers separately
+    const tabContainers = document.querySelectorAll('.tab-container');
 
-    tabButtons.forEach(button => {
-        button.addEventListener('click', () => {
-            const tabName = button.getAttribute('data-tab');
+    tabContainers.forEach(container => {
+        const tabButtons = container.querySelectorAll('.tab-btn');
+        const tabContents = container.querySelectorAll('.tab-content');
 
-            // Remove active class from all buttons and contents
-            tabButtons.forEach(btn => btn.classList.remove('active'));
-            tabContents.forEach(content => content.classList.remove('active'));
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const tabName = button.getAttribute('data-tab');
 
-            // Add active class to clicked button and corresponding content
-            button.classList.add('active');
-            const activeTab = document.getElementById(`${tabName}-tab`);
-            if (activeTab) {
-                activeTab.classList.add('active');
-            }
+                // Remove active class from buttons and contents within THIS container only
+                tabButtons.forEach(btn => btn.classList.remove('active'));
+                tabContents.forEach(content => content.classList.remove('active'));
+
+                // Add active class to clicked button and corresponding content
+                button.classList.add('active');
+                const activeTab = document.getElementById(`${tabName}-tab`);
+                if (activeTab) {
+                    activeTab.classList.add('active');
+                }
+            });
         });
     });
 }
@@ -1076,8 +1169,49 @@ function handleAssetTypeChange() {
 /**
  * Handle commercial asset selection change
  */
-function handleCommercialAssetChange() {
-    updateUtilityBuyButtonState();
+async function handleCommercialAssetChange() {
+    if (commercialAssetSelect.value) {
+        // Check ownership when commercial asset is selected
+        const playerSelected = utilityPlayerSelect.value && utilityPlayerSelect.value !== '__new_player__';
+        const newPlayerFilled = utilityPlayerSelect.value === '__new_player__' && utilityPlayerInput.value.trim();
+        const playerOk = playerSelected || newPlayerFilled;
+
+        if (playerOk) {
+            const currentPlayerName = utilityPlayerSelect.value === '__new_player__'
+                ? utilityPlayerInput.value.trim()
+                : utilityPlayerSelect.value;
+
+            const assetTypeSelected = assetTypeSelect.value;
+            const assetSelected = commercialAssetSelect.value;
+            const owner = findCommercialAssetOwner(assetTypeSelected, assetSelected);
+
+            if (owner && owner !== currentPlayerName) {
+                // Asset owned by another player - disable Buy, enable Pay Rent/Ticket
+                utilityBuyBtn.disabled = true;
+                utilityBuyBtn.style.display = 'none';
+                utilityPayTicketBtn.disabled = false;
+                utilityPayTicketBtn.style.display = 'inline-block';
+
+                // Display ticket message immediately
+                displayUtilityTicketMessage(currentPlayerName, assetTypeSelected, assetSelected, owner);
+            } else {
+                // Asset not owned or owned by current player - enable Buy
+                utilityBuyBtn.style.display = 'inline-block';
+                utilityPayTicketBtn.style.display = 'none';
+                utilityTicketMessage.textContent = ''; // Clear ticket message
+                updateUtilityBuyButtonState();
+
+                // Display purchase amount if all fields are filled
+                if (currentPlayerName && assetTypeSelected && assetSelected) {
+                    await displayUtilityPurchaseMessage(currentPlayerName, assetTypeSelected, assetSelected);
+                }
+            }
+        } else {
+            updateUtilityBuyButtonState();
+        }
+    } else {
+        updateUtilityBuyButtonState();
+    }
 }
 
 /**
@@ -1095,6 +1229,195 @@ function updateUtilityBuyButtonState() {
         utilityBuyBtn.disabled = false;
     } else {
         utilityBuyBtn.disabled = true;
+    }
+}
+
+/**
+ * Display ticket message for a utility/commercial asset
+ */
+async function displayUtilityTicketMessage(playerName, assetType, assetName, owner) {
+    if (assetType === 'Transport') {
+        // Calculate and display actual ticket amount for transport
+        const ticketAmount = await calculateTransportTicket(owner, assetName);
+
+        if (ticketAmount === null) {
+            utilityTicketMessage.textContent = 'Could not calculate ticket amount';
+            return;
+        }
+
+        // Count how many transport companies the owner has
+        let transportCount = 0;
+        if (currentPlayerDb[owner] && currentPlayerDb[owner]['Transport']) {
+            transportCount = Object.keys(currentPlayerDb[owner]['Transport']).length;
+        }
+
+        const ticketMsg = `Player "${playerName}" to pay $${ticketAmount} as ticket to "${owner}" (${transportCount} transport cos)`;
+        utilityTicketMessage.textContent = ticketMsg;
+        utilityTicketMessage.style.color = '#d32f2f'; // Red color for payment messages
+    } else {
+        // For utilities, use a simplified ticket message (dummy)
+        const ticketMsg = `Player "${playerName}" must pay rent/ticket to "${owner}" for "${assetName}" (${assetType})`;
+        utilityTicketMessage.textContent = ticketMsg;
+    }
+}
+
+/**
+ * Calculate purchase price for a commercial asset
+ */
+async function calculateCommercialAssetPrice(assetType, assetName) {
+    try {
+        const response = await fetch(`${API_BASE}/database`);
+        const data = await response.json();
+        const commercialDb = data.commercial_database || {};
+
+        if (commercialDb[assetType] && commercialDb[assetType][assetName]) {
+            return commercialDb[assetType][assetName].price || 0;
+        }
+        return null;
+    } catch (error) {
+        console.error('Error calculating commercial asset price:', error);
+        return null;
+    }
+}
+
+/**
+ * Display purchase amount preview message for commercial assets
+ */
+async function displayUtilityPurchaseMessage(playerName, assetType, assetName) {
+    const purchasePrice = await calculateCommercialAssetPrice(assetType, assetName);
+
+    if (purchasePrice === null) {
+        utilityTicketMessage.textContent = 'Could not calculate purchase price';
+        return;
+    }
+
+    // Display purchase message inline
+    const purchaseMsg = `Player "${playerName}" to pay $${purchasePrice} to Treasurer for "${assetName}" (${assetType})`;
+    utilityTicketMessage.textContent = purchaseMsg;
+    utilityTicketMessage.style.color = '#d32f2f'; // Red color for payment messages
+}
+
+/**
+ * Calculate transport ticket amount based on number of transport companies owned
+ */
+async function calculateTransportTicket(ownerName, assetName) {
+    try {
+        // Count how many transport companies the owner has
+        let transportCount = 0;
+        if (currentPlayerDb[ownerName] && currentPlayerDb[ownerName]['Transport']) {
+            transportCount = Object.keys(currentPlayerDb[ownerName]['Transport']).length;
+        }
+
+        // Get commercial database for ticket pricing
+        const response = await fetch(`${API_BASE}/database`);
+        const data = await response.json();
+        const commercialDb = data.commercial_database || {};
+
+        if (commercialDb['Transport'] && commercialDb['Transport'][assetName]) {
+            const ticketInfo = commercialDb['Transport'][assetName].ticket || {};
+
+            // Map number of transport companies owned to ticket key
+            const ticketKeys = {
+                1: '1 owned',
+                2: '2 owned',
+                3: '3 owned',
+                4: '4 owned'
+            };
+
+            const ticketKey = ticketKeys[transportCount] || '1 owned';
+            return ticketInfo[ticketKey] || 0;
+        }
+        return null;
+    } catch (error) {
+        console.error('Error calculating transport ticket:', error);
+        return null;
+    }
+}
+
+/**
+ * Handle utility pay ticket button click
+ */
+async function handleUtilityPayTicket() {
+    // Extract information from current selections
+    const payingPlayer = utilityPlayerSelect.value === '__new_player__'
+        ? utilityPlayerInput.value.trim()
+        : utilityPlayerSelect.value;
+    const assetTypeSelected = assetTypeSelect.value;
+    const assetSelected = commercialAssetSelect.value;
+
+    if (!payingPlayer || !assetTypeSelected || !assetSelected) {
+        showErrorDetails('Missing player, asset type, or asset information');
+        return;
+    }
+
+    // Find the owner of the asset
+    const owner = findCommercialAssetOwner(assetTypeSelected, assetSelected);
+
+    if (!owner) {
+        showErrorDetails('Could not determine asset owner');
+        return;
+    }
+
+    // Check if this is Transport or Utilities
+    if (assetTypeSelected === 'Transport') {
+        // Calculate ticket amount for transport companies
+        const ticketAmount = await calculateTransportTicket(owner, assetSelected);
+
+        if (ticketAmount === null) {
+            showErrorDetails('Could not calculate ticket amount');
+            return;
+        }
+
+        // Disable button during request
+        utilityPayTicketBtn.disabled = true;
+
+        try {
+            const response = await fetch(`${API_BASE}/pay-rent`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    paying_player: payingPlayer,
+                    receiving_player: owner,
+                    rent_amount: ticketAmount
+                }),
+            });
+
+            const result = await response.json();
+
+            if (result.error) {
+                showErrorDetails(result.error);
+            } else if (result.message) {
+                // Display the transaction message
+                utilityTicketMessage.textContent = result.message;
+                utilityTicketMessage.style.color = '#2e7d32'; // Green color for success
+
+                // Refresh database and players, then reset form
+                setTimeout(async () => {
+                    await loadDatabase();
+                    await loadPlayers();
+                    resetUtilityForm();
+                }, 1500);
+            }
+        } catch (error) {
+            showErrorDetails(`Network error: ${error.message}`);
+        } finally {
+            // Re-enable button
+            utilityPayTicketBtn.disabled = false;
+        }
+    } else {
+        // Utilities remain as dummy for now
+        const message = `[DUMMY] Player "${payingPlayer}" would pay rent/ticket to "${owner}" for "${assetSelected}" (${assetTypeSelected})`;
+        utilityTicketMessage.textContent = message;
+        showMessage('info', message);
+
+        console.log('Pay Ticket (Dummy - Utilities):', {
+            payingPlayer,
+            owner,
+            assetType: assetTypeSelected,
+            asset: assetSelected
+        });
     }
 }
 
@@ -1144,8 +1467,16 @@ async function handleUtilityBuy() {
             }
         }
 
-        // Refresh players and database after successful purchase
+        // Update message with payment confirmation
         if (response.ok && data.status !== 'error') {
+            // Extract payment info and display confirmation
+            const purchasePrice = await calculateCommercialAssetPrice(assetType, assetName);
+
+            if (purchasePrice > 0) {
+                utilityTicketMessage.textContent = `Player "${playerName}" paid $${purchasePrice} to Treasurer`;
+                utilityTicketMessage.style.color = '#2e7d32'; // Green color for success
+            }
+
             setTimeout(async () => {
                 await loadPlayers();
                 await loadDatabase();
@@ -1178,6 +1509,14 @@ function resetUtilityForm() {
     if (utilityBuyBtn) {
         utilityBuyBtn.disabled = true;
         utilityBuyBtn.textContent = 'Buy';
+        utilityBuyBtn.style.display = 'inline-block';
+    }
+    if (utilityPayTicketBtn) {
+        utilityPayTicketBtn.disabled = true;
+        utilityPayTicketBtn.style.display = 'none';
+    }
+    if (utilityTicketMessage) {
+        utilityTicketMessage.textContent = '';
     }
 }
 
@@ -1227,6 +1566,9 @@ function setupEventListeners() {
     }
     if (utilityResetBtn) {
         utilityResetBtn.addEventListener('click', resetUtilityForm);
+    }
+    if (utilityPayTicketBtn) {
+        utilityPayTicketBtn.addEventListener('click', handleUtilityPayTicket);
     }
 }
 

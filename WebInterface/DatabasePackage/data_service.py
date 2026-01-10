@@ -11,6 +11,7 @@ import os
 WEBINTERFACE_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ASSET_DB = os.path.join(WEBINTERFACE_ROOT, 'DatabaseJson', 'Asset_database.json')
 PLAYER_DB = os.path.join(WEBINTERFACE_ROOT, 'DatabaseJson', 'Player_database.json')
+COMMERCIAL_DB = os.path.join(WEBINTERFACE_ROOT, 'DatabaseJson', 'Commercial_properties.json')
 
 
 def load_asset_database():
@@ -34,6 +35,18 @@ def load_player_database():
             return json.load(f)
     except Exception as e:
         print(f"Error loading player database: {e}")
+        return {}
+
+
+def load_commercial_database():
+    """Load commercial properties database from JSON file"""
+    if not os.path.exists(COMMERCIAL_DB):
+        return {}
+    try:
+        with open(COMMERCIAL_DB, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except Exception as e:
+        print(f"Error loading commercial database: {e}")
         return {}
 
 
@@ -110,15 +123,17 @@ def get_player_assets(player_name):
 
 def get_database_state():
     """
-    Get current state of both databases
+    Get current state of all databases
     
     Returns:
-        dict: Dictionary containing both asset_database and player_database
+        dict: Dictionary containing asset_database, player_database, and commercial_database
     """
     asset_db = load_asset_database()
     player_db = load_player_database()
+    commercial_db = load_commercial_database()
     
     return {
         'asset_database': asset_db if asset_db else {},
-        'player_database': player_db
+        'player_database': player_db,
+        'commercial_database': commercial_db
     }
