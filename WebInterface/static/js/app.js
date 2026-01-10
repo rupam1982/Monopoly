@@ -7,7 +7,7 @@ const API_BASE = '/api';
 
 // DOM Elements - will be initialized after DOM loads
 let playerSelect, playerInput, areaSelect, assetSelect, housesSelect;
-let assignBtn, payRentBtn, resetBtn, refreshBtn, startGameBtn;
+let assignBtn, payRentBtn, resetBtn, startGameBtn, showAccountsBtn;
 let messageArea, messageContent, playerDbContent;
 let errorDetailsBox, errorDetailsContent, closeErrorBox;
 let pythonOutputBox, pythonOutputContent, closeOutputBox;
@@ -41,11 +41,10 @@ async function init() {
     assignBtn = document.getElementById('assign-btn');
     payRentBtn = document.getElementById('pay-rent-btn');
     resetBtn = document.getElementById('reset-btn');
-    refreshBtn = document.getElementById('refresh-btn');
     startGameBtn = document.getElementById('start-game-btn');
+    showAccountsBtn = document.getElementById('show-accounts-btn');
     messageArea = document.getElementById('message-area');
     messageContent = document.getElementById('message-content');
-    playerDbContent = document.getElementById('player-db-content');
     errorDetailsBox = document.getElementById('error-details-box');
     errorDetailsContent = document.getElementById('error-details-content');
     closeErrorBox = document.getElementById('close-error-box');
@@ -71,7 +70,6 @@ async function init() {
     await loadAreas();
     await loadPlayers();
     await loadAssetTypes();
-    await loadDatabase();
     setupEventListeners();
     setupTabSwitching();
 }
@@ -562,7 +560,6 @@ async function handleAssign() {
 
             setTimeout(async () => {
                 await loadPlayers();
-                await loadDatabase();
                 resetForm();
             }, 1500);
         } else {
@@ -638,9 +635,8 @@ async function handlePayRent() {
             rentMessage.textContent = result.message;
             rentMessage.style.color = '#2e7d32'; // Green color for success
 
-            // Refresh database and players, then reset form
+            // Refresh players list to include any new players
             setTimeout(async () => {
-                await loadDatabase();
                 await loadPlayers();
                 resetForm();
             }, 1500);
@@ -1114,6 +1110,14 @@ function filterTable(filterInputs) {
 }
 
 /**
+ * Handle Show Accounts button click
+ */
+function handleShowAccounts() {
+    // Open accounts page in a new tab
+    window.open('/accounts', '_blank');
+}
+
+/**
  * Handle utility player selection change
  */
 function handleUtilityPlayerChange() {
@@ -1393,9 +1397,8 @@ async function handleUtilityPayTicket() {
                 utilityTicketMessage.textContent = result.message;
                 utilityTicketMessage.style.color = '#2e7d32'; // Green color for success
 
-                // Refresh database and players, then reset form
+                // Refresh players list to include any new players
                 setTimeout(async () => {
-                    await loadDatabase();
                     await loadPlayers();
                     resetUtilityForm();
                 }, 1500);
@@ -1479,7 +1482,6 @@ async function handleUtilityBuy() {
 
             setTimeout(async () => {
                 await loadPlayers();
-                await loadDatabase();
                 resetUtilityForm();
             }, 1500);
         } else {
@@ -1536,7 +1538,7 @@ function setupEventListeners() {
         hideErrorDetails(); // Hide error box when user clicks reset
         hidePythonOutput(); // Hide output box when user clicks reset
     });
-    refreshBtn.addEventListener('click', loadDatabase);
+    showAccountsBtn.addEventListener('click', handleShowAccounts);
     startGameBtn.addEventListener('click', handleStartGame);
     closeErrorBox.addEventListener('click', hideErrorDetails);
     closeOutputBox.addEventListener('click', hidePythonOutput);
@@ -1603,7 +1605,6 @@ async function handleStartGame() {
             showPythonOutput(result.message);
 
             // Reload the database to reflect changes
-            await loadDatabase();
             await loadPlayers();
 
             // Reset the form

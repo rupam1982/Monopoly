@@ -1,12 +1,9 @@
 {
-  "Player 1": {
-    "Transport": {
-      "Railroad": {},
-      "Bus Company": {},
-      "Airline": {}
+  "Rupamekfghfj23lqe/rebg": {
+    "Street 1": {
+      "Asset 1.3": {
+        "houses": 2
+      }
     }
-  },
-  "Player 2": {},
-  "Player 3": {},
-  "Player 4": {}
+  }
 }

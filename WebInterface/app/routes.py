@@ -392,3 +392,9 @@ def get_transactions():
 def index():
     """Serve the main application page"""
     return render_template('index.html')
+
+
+@main.route('/accounts', methods=['GET'])
+def accounts():
+    """Serve the accounts and properties page"""
+    return render_template('accounts.html')

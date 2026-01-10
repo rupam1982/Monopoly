@@ -78,6 +78,35 @@ header h1 {
     transform: translateY(0);
 }
 
+.show-accounts-container {
+    text-align: center;
+    margin-top: 30px;
+    padding: 20px 0;
+}
+
+.btn-show-accounts {
+    background-color: var(--secondary-color);
+    color: white;
+    border: none;
+    padding: 15px 40px;
+    font-size: 1.1em;
+    font-weight: 600;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: var(--shadow-lg);
+}
+
+.btn-show-accounts:hover {
+    background-color: #6d28d9;
+    transform: translateY(-2px);
+    box-shadow: 0 12px 20px -3px rgba(0, 0, 0, 0.15);
+}
+
+.btn-show-accounts:active {
+    transform: translateY(0);
+}
+
 main {
     display: grid;
     gap: 40px;

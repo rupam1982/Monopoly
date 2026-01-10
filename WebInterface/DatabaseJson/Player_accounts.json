@@ -1,5 +1,5 @@
 {
-    "Player 1": [
+    "Rupamekfghfj23lqe/rebg": [
         {
             "payment amount": 1500,
             "payment source": "Treasurer"
@@ -7,64 +7,6 @@
         {
             "payment amount": -200,
             "payment source": "Treasurer"
-        },
-        {
-            "payment amount": -200,
-            "payment source": "Treasurer"
-        },
-        {
-            "payment amount": -200,
-            "payment source": "Treasurer"
-        },
-        {
-            "payment amount": 160,
-            "payment source": "Player 2"
-        },
-        {
-            "payment amount": 160,
-            "payment source": "Player 3"
-        },
-        {
-            "payment amount": 160,
-            "payment source": "Player 2"
-        },
-        {
-            "payment amount": 160,
-            "payment source": "Player 4"
-        }
-    ],
-    "Player 2": [
-        {
-            "payment amount": 1500,
-            "payment source": "Treasurer"
-        },
-        {
-            "payment amount": -160,
-            "payment source": "Player 1"
-        },
-        {
-            "payment amount": -160,
-            "payment source": "Player 1"
-        }
-    ],
-    "Player 3": [
-        {
-            "payment amount": 1500,
-            "payment source": "Treasurer"
-        },
-        {
-            "payment amount": -160,
-            "payment source": "Player 1"
-        }
-    ],
-    "Player 4": [
-        {
-            "payment amount": 1500,
-            "payment source": "Treasurer"
-        },
-        {
-            "payment amount": -160,
-            "payment source": "Player 1"
         }
     ]
 }
