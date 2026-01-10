@@ -240,6 +240,13 @@ section h2 {
     transform: translateY(-2px);
 }
 
+.button-group {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 20px;
+}
+
 .btn-warning {
     background-color: var(--warning-color);
     color: white;

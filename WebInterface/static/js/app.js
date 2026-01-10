@@ -1113,8 +1113,14 @@ function filterTable(filterInputs) {
  * Handle Show Accounts button click
  */
 function handleShowAccounts() {
-    // Open accounts page in a new tab
-    window.open('/accounts', '_blank');
+    // Check if we're in the macOS app (has webkit messageHandlers)
+    if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.showAccounts) {
+        // Send message to Swift app to show accounts window
+        window.webkit.messageHandlers.showAccounts.postMessage('show');
+    } else {
+        // Fallback: Open accounts page in a new tab (for web browser)
+        window.open('/accounts', '_blank');
+    }
 }
 
 /**

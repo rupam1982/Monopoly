@@ -6,7 +6,7 @@
 const API_BASE = '/api';
 
 // DOM Elements
-let playerDbContent, refreshBtn;
+let playerDbContent, refreshBtn, backToBoardBtn;
 
 /**
  * Initialize the accounts page
@@ -15,6 +15,7 @@ async function init() {
     // Initialize DOM elements
     playerDbContent = document.getElementById('player-db-content');
     refreshBtn = document.getElementById('refresh-btn');
+    backToBoardBtn = document.getElementById('back-to-board-btn');
 
     await loadDatabase();
     setupEventListeners();
@@ -29,6 +30,21 @@ async function init() {
  */
 function setupEventListeners() {
     refreshBtn.addEventListener('click', loadDatabase);
+    backToBoardBtn.addEventListener('click', handleBackToBoard);
+}
+
+/**
+ * Handle back to board button click
+ */
+function handleBackToBoard() {
+    // Check if we're in the macOS app (has webkit messageHandlers)
+    if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.boardMove) {
+        // Send message to Swift app to navigate back
+        window.webkit.messageHandlers.boardMove.postMessage('show');
+    } else {
+        // Fallback: Navigate in browser
+        window.location.href = '/';
+    }
 }
 
 /**
