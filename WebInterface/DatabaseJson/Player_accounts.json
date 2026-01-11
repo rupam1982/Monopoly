@@ -22,5 +22,15 @@
             "payment amount": -400,
             "payment source": "Treasurer"
         }
+    ],
+    "Player 2": [
+        {
+            "payment amount": 1500,
+            "payment source": "Treasurer"
+        },
+        {
+            "payment amount": -290,
+            "payment source": "Treasurer"
+        }
     ]
 }

@@ -17,5 +17,12 @@
         "houses": 4
       }
     }
+  },
+  "Player 2": {
+    "Street 2": {
+      "Asset 2.1": {
+        "houses": 3
+      }
+    }
   }
 }

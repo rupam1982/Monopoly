@@ -8,6 +8,12 @@ const API_BASE = '/api';
 // DOM Elements
 let playerDbContent, refreshBtn, backToBoardBtn;
 
+// Store current filter state to preserve during auto-refresh
+let currentFilters = {
+    player: '',
+    street: ''
+};
+
 /**
  * Initialize the accounts page
  */
@@ -103,6 +109,12 @@ async function loadDatabase() {
  * Display assets table
  */
 function displayAssetsTable(playerDb) {
+    // Save current filter selections before rebuilding
+    const existingPlayerFilter = document.getElementById('filter-player');
+    const existingStreetFilter = document.getElementById('filter-street');
+    if (existingPlayerFilter) currentFilters.player = existingPlayerFilter.value;
+    if (existingStreetFilter) currentFilters.street = existingStreetFilter.value;
+
     // Collect unique players and streets
     const uniquePlayers = new Set();
     const uniqueStreets = new Set();
@@ -178,7 +190,36 @@ function displayAssetsTable(playerDb) {
     `;
 
     playerDbContent.innerHTML = tableHTML;
+
+    // Restore previous filter selections
+    const playerFilter = document.getElementById('filter-player');
+    const streetFilter = document.getElementById('filter-street');
+    if (playerFilter && currentFilters.player) {
+        playerFilter.value = currentFilters.player;
+    }
+    if (streetFilter && currentFilters.street) {
+        streetFilter.value = currentFilters.street;
+    }
+
     setupTableFilters(playerDb);
+
+    // Re-apply filters if they were set
+    if (currentFilters.player || currentFilters.street) {
+        // Update street options based on player selection
+        if (currentFilters.player) {
+            updateStreetFilterOptions(currentFilters.player, playerDb);
+            // Restore street filter value after update
+            const updatedStreetFilter = document.getElementById('filter-street');
+            if (updatedStreetFilter && currentFilters.street) {
+                updatedStreetFilter.value = currentFilters.street;
+            }
+        }
+        // Apply the filters
+        filterTable({
+            player: playerFilter,
+            street: document.getElementById('filter-street')
+        });
+    }
 }
 
 /**
@@ -241,22 +282,49 @@ function displayTransactionsTable(data) {
  * Setup table filter functionality
  */
 function setupTableFilters(playerDb) {
-    const filterInputs = {
-        player: document.getElementById('filter-player'),
-        street: document.getElementById('filter-street')
-    };
+    const playerFilter = document.getElementById('filter-player');
+    const streetFilter = document.getElementById('filter-street');
 
     // Add event listener to player filter to update street options
-    if (filterInputs.player) {
-        filterInputs.player.addEventListener('change', () => {
-            updateStreetFilterOptions(filterInputs.player.value, playerDb);
-            filterTable(filterInputs);
+    if (playerFilter) {
+        playerFilter.addEventListener('change', () => {
+            currentFilters.player = playerFilter.value;
+            currentFilters.street = ''; // Reset street filter when player changes
+            updateStreetFilterOptions(playerFilter.value, playerDb);
+            // Re-attach listener to street filter after it's been recreated
+            attachStreetFilterListener(playerDb);
+            // Filter with current values
+            filterTable({
+                player: playerFilter,
+                street: document.getElementById('filter-street')
+            });
         });
     }
 
-    // Add event listener to street filter
-    if (filterInputs.street) {
-        filterInputs.street.addEventListener('change', () => filterTable(filterInputs));
+    // Initial attachment of street filter listener
+    attachStreetFilterListener(playerDb);
+}
+
+/**
+ * Attach event listener to street filter
+ */
+function attachStreetFilterListener(playerDb) {
+    const playerFilter = document.getElementById('filter-player');
+    const streetFilter = document.getElementById('filter-street');
+
+    if (streetFilter) {
+        // Remove old listener by cloning and replacing the node
+        const newStreetFilter = streetFilter.cloneNode(true);
+        streetFilter.parentNode.replaceChild(newStreetFilter, streetFilter);
+
+        // Add new listener
+        newStreetFilter.addEventListener('change', () => {
+            currentFilters.street = newStreetFilter.value;
+            filterTable({
+                player: playerFilter,
+                street: newStreetFilter
+            });
+        });
     }
 }
 
