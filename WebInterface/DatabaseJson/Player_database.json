@@ -16,6 +16,14 @@
       "Asset 2.3": {
         "houses": 4
       }
+    },
+    "Street 1": {
+      "Asset 1.2": {
+        "houses": 2
+      }
+    },
+    "Utilities": {
+      "Gas Company": {}
     }
   },
   "Player 2": {
@@ -23,6 +31,9 @@
       "Asset 2.1": {
         "houses": 3
       }
+    },
+    "Utilities": {
+      "Electric Company": {}
     }
   }
 }

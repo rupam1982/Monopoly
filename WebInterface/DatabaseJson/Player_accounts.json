@@ -21,6 +21,22 @@
         {
             "payment amount": -400,
             "payment source": "Treasurer"
+        },
+        {
+            "payment amount": 70,
+            "payment source": "Player 2"
+        },
+        {
+            "payment amount": -215,
+            "payment source": "Treasurer"
+        },
+        {
+            "payment amount": -150,
+            "payment source": "Treasurer"
+        },
+        {
+            "payment amount": -150,
+            "payment source": "Treasurer"
         }
     ],
     "Player 2": [
@@ -30,6 +46,18 @@
         },
         {
             "payment amount": -290,
+            "payment source": "Treasurer"
+        },
+        {
+            "payment amount": -70,
+            "payment source": "Player 1"
+        },
+        {
+            "payment amount": -150,
+            "payment source": "Treasurer"
+        },
+        {
+            "payment amount": -150,
             "payment source": "Treasurer"
         }
     ]

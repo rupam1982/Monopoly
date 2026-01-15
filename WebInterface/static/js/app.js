@@ -82,6 +82,7 @@ async function init() {
     await loadAreas();
     await loadPlayers();
     await loadAssetTypes();
+    await loadPlayerDatabase(); // Load database to populate currentPlayerDb for ownership checks
     setupEventListeners();
     setupTabSwitching();
 }
@@ -242,11 +243,22 @@ function populateCommercialAssetDropdown() {
     commercialAssetSelect.innerHTML = '<option value="">-- Select Asset Name --</option>';
 
     if (selectedAssetType && commercialAssetsByType[selectedAssetType]) {
+        // Get current player name
+        const currentPlayerName = utilityPlayerSelect.value === '__new_player__'
+            ? utilityPlayerInput.value.trim()
+            : utilityPlayerSelect.value;
+
         commercialAssetsByType[selectedAssetType].forEach(asset => {
-            const option = document.createElement('option');
-            option.value = asset;
-            option.textContent = asset;
-            commercialAssetSelect.appendChild(option);
+            // Check if this asset is owned by the current player
+            const owner = findCommercialAssetOwner(selectedAssetType, asset);
+
+            // Only add to dropdown if not owned by current player
+            if (!owner || owner !== currentPlayerName) {
+                const option = document.createElement('option');
+                option.value = asset;
+                option.textContent = asset;
+                commercialAssetSelect.appendChild(option);
+            }
         });
     }
 }
@@ -278,6 +290,27 @@ function updateAssignButtonState() {
         assignBtn.style.display = 'inline-block';
         payRentBtn.disabled = true;
         payRentBtn.style.display = 'none';
+    }
+}
+
+/**
+ * Get total available houses for a property from asset database
+ */
+async function getAvailableHouses(area, asset) {
+    try {
+        const response = await fetch(`${API_BASE}/database`);
+        const data = await response.json();
+        const assetDb = data.asset_database || {};
+
+        if (assetDb[area] && assetDb[area][asset]) {
+            const assetInfo = assetDb[area][asset];
+            // Check if the property has any houses available (house_price > 0 means houses can be built)
+            return assetInfo.house_price && assetInfo.house_price > 0 ? 4 : 0;
+        }
+        return 0;
+    } catch (error) {
+        console.error('Error getting available houses:', error);
+        return 0;
     }
 }
 
@@ -352,7 +385,7 @@ function handleAreaChange() {
 /**
  * Handle asset selection change
  */
-function handleAssetChange() {
+async function handleAssetChange() {
     if (assetSelect.value) {
         // Check ownership when asset is selected
         const playerSelected = playerSelect.value && playerSelect.value !== '__new_player__';
@@ -380,12 +413,28 @@ function handleAssetChange() {
                 // Display rent message immediately
                 displayRentMessage(currentPlayerName, areaSelected, assetSelected, owner);
             } else {
-                // Asset not owned or owned by current player - enable houses
-                housesSelect.disabled = false;
-                assignBtn.style.display = 'inline-block';
-                payRentBtn.style.display = 'none';
-                rentMessage.textContent = ''; // Clear rent message
-                updateAssignButtonState();
+                // Asset not owned or owned by current player
+                // Check if houses are available for this property
+                const availableHouses = await getAvailableHouses(areaSelected, assetSelected);
+
+                if (availableHouses > 0) {
+                    // Enable houses dropdown for properties that can have houses
+                    housesSelect.disabled = false;
+                    assignBtn.style.display = 'inline-block';
+                    payRentBtn.style.display = 'none';
+                    rentMessage.textContent = ''; // Clear rent message
+                    updateAssignButtonState();
+                } else {
+                    // No houses available - disable Buy option
+                    housesSelect.disabled = true;
+                    housesSelect.value = '';
+                    assignBtn.disabled = true;
+                    assignBtn.style.display = 'inline-block';
+                    payRentBtn.disabled = true;
+                    payRentBtn.style.display = 'none';
+                    rentMessage.textContent = 'This property does not support houses';
+                    rentMessage.style.color = '#d32f2f'; // Red color for warning
+                }
             }
         } else {
             housesSelect.disabled = false;
@@ -563,7 +612,7 @@ async function handleAssign() {
                 : playerSelect.value;
             const assetName = assetSelect.value;
             const houses = parseInt(housesSelect.value);
-            const purchaseAmount = await calculatePurchaseAmount(areaSelect.value, assetName, houses);
+            const purchaseAmount = await calculatePurchaseAmount(areaSelect.value, assetName, houses, playerName);
 
             if (purchaseAmount > 0) {
                 rentMessage.textContent = `Player "${playerName}" paid $${purchaseAmount} to Treasurer`;
@@ -572,6 +621,7 @@ async function handleAssign() {
 
             setTimeout(async () => {
                 await loadPlayers();
+                await loadPlayerDatabase(); // Refresh the database to get updated house counts
                 resetForm();
             }, 1500);
         } else {
@@ -719,7 +769,7 @@ async function calculateRent(area, asset, houses) {
 /**
  * Calculate purchase amount for a property
  */
-async function calculatePurchaseAmount(area, asset, houses) {
+async function calculatePurchaseAmount(area, asset, houses, playerName) {
     try {
         const response = await fetch(`${API_BASE}/database`);
         const data = await response.json();
@@ -729,7 +779,24 @@ async function calculatePurchaseAmount(area, asset, houses) {
             const assetInfo = assetDb[area][asset];
             const landPrice = assetInfo.land_price || 0;
             const housePrice = assetInfo.house_price || 0;
-            return landPrice + (housePrice * houses);
+
+            // Check if player already owns this property
+            const existingHouses = (currentPlayerDb[playerName] &&
+                currentPlayerDb[playerName][area] &&
+                currentPlayerDb[playerName][area][asset])
+                ? (currentPlayerDb[playerName][area][asset].houses || 0)
+                : 0;
+
+            // Calculate total houses after purchase (capped at 4)
+            const totalHouses = Math.min(4, existingHouses + houses);
+
+            // Calculate houses being added
+            const housesAdded = totalHouses - existingHouses;
+
+            // If player already owns the property, don't charge land price
+            const landCost = existingHouses > 0 ? 0 : landPrice;
+
+            return landCost + (housePrice * housesAdded);
         }
         return null;
     } catch (error) {
@@ -742,17 +809,41 @@ async function calculatePurchaseAmount(area, asset, houses) {
  * Display purchase amount preview message for properties
  */
 async function displayPurchaseMessage(playerName, areaName, assetName, houses) {
-    const purchaseAmount = await calculatePurchaseAmount(areaName, assetName, houses);
+    const purchaseAmount = await calculatePurchaseAmount(areaName, assetName, houses, playerName);
 
     if (purchaseAmount === null) {
         rentMessage.textContent = 'Could not calculate purchase amount';
         return;
     }
 
-    // Display purchase message inline
-    const purchaseMsg = `Player "${playerName}" to pay $${purchaseAmount} to Treasurer for "${assetName}" on "${areaName}" (${houses} houses)`;
+    // Calculate actual houses being added
+    const existingHouses = (currentPlayerDb[playerName] && 
+                           currentPlayerDb[playerName][areaName] && 
+                           currentPlayerDb[playerName][areaName][assetName])
+        ? (currentPlayerDb[playerName][areaName][assetName].houses || 0)
+        : 0;
+    
+    const totalHouses = Math.min(4, existingHouses + houses);
+    const housesAdded = totalHouses - existingHouses;
+
+    // Display purchase message inline with actual houses being added
+    const purchaseMsg = `Player "${playerName}" to pay $${purchaseAmount} to Treasurer for "${assetName}" on "${areaName}" (${housesAdded} houses added)`;
     rentMessage.textContent = purchaseMsg;
     rentMessage.style.color = '#d32f2f'; // Red color for payment messages
+}
+
+/**
+ * Load player database data only (without rendering)
+ */
+async function loadPlayerDatabase() {
+    try {
+        const response = await fetch(`${API_BASE}/database`);
+        const data = await response.json();
+        currentPlayerDb = data.player_database || {};
+    } catch (error) {
+        console.error('Failed to load player database:', error);
+        currentPlayerDb = {};
+    }
 }
 
 /**
