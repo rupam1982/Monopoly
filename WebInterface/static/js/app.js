@@ -817,12 +817,12 @@ async function displayPurchaseMessage(playerName, areaName, assetName, houses) {
     }
 
     // Calculate actual houses being added
-    const existingHouses = (currentPlayerDb[playerName] && 
-                           currentPlayerDb[playerName][areaName] && 
-                           currentPlayerDb[playerName][areaName][assetName])
+    const existingHouses = (currentPlayerDb[playerName] &&
+        currentPlayerDb[playerName][areaName] &&
+        currentPlayerDb[playerName][areaName][assetName])
         ? (currentPlayerDb[playerName][areaName][assetName].houses || 0)
         : 0;
-    
+
     const totalHouses = Math.min(4, existingHouses + houses);
     const housesAdded = totalHouses - existingHouses;
 
