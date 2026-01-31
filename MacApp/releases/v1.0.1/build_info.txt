@@ -1,0 +1,4 @@
+Monopoly Wrapper App
+Version: v1.0.1
+Build Date: 2026-01-31 12:16:13
+Build Type: Wrapper (requires Python)

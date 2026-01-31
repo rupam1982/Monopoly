@@ -11,6 +11,10 @@
         {
             "payment amount": -200,
             "payment source": "Treasurer"
+        },
+        {
+            "payment amount": 45,
+            "payment source": "Player 1"
         }
     ],
     "Player 1": [
@@ -37,6 +41,10 @@
         {
             "payment amount": -150,
             "payment source": "Treasurer"
+        },
+        {
+            "payment amount": -45,
+            "payment source": "Rupamekfghfj23lqe/rebg"
         }
     ],
     "Player 2": [

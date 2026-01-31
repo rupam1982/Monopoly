@@ -16,11 +16,20 @@ Monopoly app/
 │   ├── player_manager.py         # Asset assignment and validation logic
 │   └── __pycache__/
 ├── WebInterface/                 # Flask web application
-│   ├── app/
-│   ├── templates/
-│   ├── static/
-│   ├── run.py
-│   └── README.md
+│   ├── app/                      # Flask routes and logic
+│   ├── templates/                # HTML templates
+│   ├── static/                   # CSS and JavaScript
+│   ├── DatabaseJson/             # Web-specific database files
+│   ├── DatabasePackage/          # Web data service layer
+│   ├── run.py                    # Flask application entry point
+│   └── README.md                 # Web interface documentation
+├── MacApp/                       # Native macOS application
+│   ├── Monopoly/                 # Xcode project
+│   │   ├── Monopoly.xcodeproj/  # Xcode project file
+│   │   └── Monopoly/            # Swift source code
+│   ├── build.sh                 # Build script
+│   ├── create_standalone_bundle.sh  # Standalone app builder
+│   └── README.md                # MacOS app documentation
 ├── .github/
 │   ├── copilot-instructions.md   # AI coding guide
 │   └── app_structure.md          # Web app specification
@@ -47,7 +56,19 @@ pip install -r requirements.txt
 python run.py
 ```
 
-Then open: `http://127.0.0.1:5000`
+Then open: `http://127.0.0.1:5001` (or the port shown in terminal)
+
+### macOS Native App
+
+Build and run the native macOS application:
+
+```bash
+cd MacApp
+./wrapper_build.sh
+open build/DerivedData/Build/Products/Release/Monopoly.app
+```
+
+See [MacApp/README.md](MacApp/README.md) for detailed build instructions including standalone app creation.
 
 ## System Architecture
 
