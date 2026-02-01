@@ -12,7 +12,7 @@ import WebKit
 struct ContentView: View {
     @EnvironmentObject var serverManager: FlaskServerManager
     @State private var showSettings = false
-    
+
     var body: some View {
         NavigationView {
             VStack {
@@ -23,20 +23,20 @@ struct ContentView: View {
                         Image(systemName: "network.slash")
                             .font(.system(size: 60))
                             .foregroundColor(.gray)
-                        
+
                         Text("Not Connected")
                             .font(.title)
-                        
+
                         Text(serverManager.serverStatus)
                             .multilineTextAlignment(.center)
                             .foregroundColor(.secondary)
                             .padding()
-                        
+
                         Button("Retry Connection") {
                             serverManager.testConnection()
                         }
                         .buttonStyle(.borderedProminent)
-                        
+
                         Button("Settings") {
                             showSettings = true
                         }
@@ -66,11 +66,11 @@ struct ContentView: View {
 
 struct WebView: UIViewRepresentable {
     let url: URL
-    
+
     func makeUIView(context: Context) -> WKWebView {
         WKWebView()
     }
-    
+
     func updateUIView(_ webView: WKWebView, context: Context) {
         webView.load(URLRequest(url: url))
     }
@@ -80,7 +80,7 @@ struct SettingsView: View {
     @EnvironmentObject var serverManager: FlaskServerManager
     @Environment(\.dismiss) var dismiss
     @State private var serverURL: String = ""
-    
+
     var body: some View {
         NavigationView {
             Form {
@@ -89,12 +89,12 @@ struct SettingsView: View {
                         .textInputAutocapitalization(.never)
                         .autocorrectionDisabled()
                         .keyboardType(.URL)
-                    
+
                     Text("Example: http://192.168.1.100:5001")
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
-                
+
                 Section {
                     Button("Save & Test Connection") {
                         serverManager.serverURL = serverURL

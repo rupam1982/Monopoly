@@ -219,7 +219,7 @@ section h2 {
     accent-color: var(--primary-color);
 }
 
-.radio-label input[type="radio"]:checked + span,
+.radio-label input[type="radio"]:checked+span,
 .radio-label:has(input[type="radio"]:checked) {
     border-color: var(--primary-color);
     background-color: rgba(30, 58, 138, 0.05);

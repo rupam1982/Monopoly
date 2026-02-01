@@ -1876,7 +1876,7 @@ function handleTreasuryAmountChange() {
 function updateTreasurySubmitButton() {
     const playerSelected = treasuryPlayerSelect && treasuryPlayerSelect.value !== '';
     const amountValid = treasuryAmount && treasuryAmount.value && parseFloat(treasuryAmount.value) > 0;
-    
+
     if (treasurySubmitBtn) {
         treasurySubmitBtn.disabled = !(playerSelected && amountValid);
     }
@@ -1889,7 +1889,7 @@ async function handleTreasurySubmit() {
     const player = treasuryPlayerSelect.value;
     const amount = parseFloat(treasuryAmount.value);
     const transactionType = document.querySelector('input[name="treasury-type"]:checked').value;
-    
+
     if (!player || !amount || amount <= 0) {
         showTreasuryMessage('Please select a player and enter a valid amount', 'error');
         return;
@@ -1920,7 +1920,7 @@ async function handleTreasurySubmit() {
             showTreasuryMessage(result.error, 'error');
         } else if (result.success) {
             showTreasuryMessage(result.message || 'Transaction completed successfully', 'success');
-            
+
             // Reset form after successful transaction
             setTimeout(() => {
                 resetTreasuryForm();
@@ -1958,7 +1958,7 @@ function resetTreasuryForm() {
  */
 function showTreasuryMessage(message, type = 'info') {
     if (!treasuryMessageArea || !treasuryMessageContent) return;
-    
+
     treasuryMessageContent.textContent = message;
     treasuryMessageArea.className = `message-area ${type}`;
     treasuryMessageArea.style.display = 'block';
