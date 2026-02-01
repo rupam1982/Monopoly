@@ -17,6 +17,10 @@ let rentMessage;
 let utilityPlayerSelect, utilityPlayerInput, assetTypeSelect, commercialAssetSelect;
 let utilityResetBtn, utilityBuyBtn, utilityPayTicketBtn, utilityTicketMessage;
 
+// Treasury Action elements
+let treasuryPlayerSelect, treasuryAmount, treasurySubmitBtn, treasuryResetBtn;
+let treasuryMessageArea, treasuryMessageContent;
+
 // State
 let availableAreas = [];
 let assetsByArea = {};
@@ -78,6 +82,14 @@ async function init() {
     utilityBuyBtn = document.getElementById('utility-buy-btn');
     utilityPayTicketBtn = document.getElementById('utility-pay-ticket-btn');
     utilityTicketMessage = document.getElementById('utility-ticket-message');
+
+    // Initialize Treasury Action DOM elements
+    treasuryPlayerSelect = document.getElementById('treasury-player-select');
+    treasuryAmount = document.getElementById('treasury-amount');
+    treasurySubmitBtn = document.getElementById('treasury-submit-btn');
+    treasuryResetBtn = document.getElementById('treasury-reset-btn');
+    treasuryMessageArea = document.getElementById('treasury-message-area');
+    treasuryMessageContent = document.getElementById('treasury-message-content');
 
     await loadAreas();
     await loadPlayers();
@@ -157,6 +169,17 @@ async function loadPlayers() {
             newUtilityPlayerOption.value = '__new_player__';
             newUtilityPlayerOption.textContent = '+ Add New Player';
             utilityPlayerSelect.appendChild(newUtilityPlayerOption);
+        }
+
+        // Populate treasury player dropdown
+        if (treasuryPlayerSelect) {
+            treasuryPlayerSelect.innerHTML = '<option value="">-- Select Player --</option>';
+            players.forEach(player => {
+                const option = document.createElement('option');
+                option.value = player;
+                option.textContent = player;
+                treasuryPlayerSelect.appendChild(option);
+            });
         }
     } catch (error) {
         showMessage('error', `Failed to load players: ${error.message}`);
@@ -1772,6 +1795,20 @@ function setupEventListeners() {
     if (utilityPayTicketBtn) {
         utilityPayTicketBtn.addEventListener('click', handleUtilityPayTicket);
     }
+
+    // Treasury Action tab event listeners
+    if (treasuryPlayerSelect) {
+        treasuryPlayerSelect.addEventListener('change', handleTreasuryPlayerChange);
+    }
+    if (treasuryAmount) {
+        treasuryAmount.addEventListener('input', handleTreasuryAmountChange);
+    }
+    if (treasurySubmitBtn) {
+        treasurySubmitBtn.addEventListener('click', handleTreasurySubmit);
+    }
+    if (treasuryResetBtn) {
+        treasuryResetBtn.addEventListener('click', resetTreasuryForm);
+    }
 }
 
 /**
@@ -1816,6 +1853,123 @@ async function handleStartGame() {
         // Re-enable button
         startGameBtn.disabled = false;
         startGameBtn.textContent = 'Start Game';
+    }
+}
+
+/**
+ * Handle treasury player selection change
+ */
+function handleTreasuryPlayerChange() {
+    updateTreasurySubmitButton();
+}
+
+/**
+ * Handle treasury amount input change
+ */
+function handleTreasuryAmountChange() {
+    updateTreasurySubmitButton();
+}
+
+/**
+ * Update treasury submit button state
+ */
+function updateTreasurySubmitButton() {
+    const playerSelected = treasuryPlayerSelect && treasuryPlayerSelect.value !== '';
+    const amountValid = treasuryAmount && treasuryAmount.value && parseFloat(treasuryAmount.value) > 0;
+    
+    if (treasurySubmitBtn) {
+        treasurySubmitBtn.disabled = !(playerSelected && amountValid);
+    }
+}
+
+/**
+ * Handle treasury submit button click
+ */
+async function handleTreasurySubmit() {
+    const player = treasuryPlayerSelect.value;
+    const amount = parseFloat(treasuryAmount.value);
+    const transactionType = document.querySelector('input[name="treasury-type"]:checked').value;
+    
+    if (!player || !amount || amount <= 0) {
+        showTreasuryMessage('Please select a player and enter a valid amount', 'error');
+        return;
+    }
+
+    // Disable button during request
+    treasurySubmitBtn.disabled = true;
+    treasurySubmitBtn.textContent = 'Processing...';
+
+    try {
+        // Determine the actual amount (negative for pay, positive for collect)
+        const paymentAmount = transactionType === 'pay' ? -amount : amount;
+
+        const response = await fetch(`${API_BASE}/treasury-action`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                player: player,
+                amount: paymentAmount
+            })
+        });
+
+        const result = await response.json();
+
+        if (result.error) {
+            showTreasuryMessage(result.error, 'error');
+        } else if (result.success) {
+            showTreasuryMessage(result.message || 'Transaction completed successfully', 'success');
+            
+            // Reset form after successful transaction
+            setTimeout(() => {
+                resetTreasuryForm();
+            }, 2000);
+        }
+    } catch (error) {
+        showTreasuryMessage(`Network error: ${error.message}`, 'error');
+    } finally {
+        // Re-enable button
+        treasurySubmitBtn.disabled = false;
+        treasurySubmitBtn.textContent = 'Submit';
+    }
+}
+
+/**
+ * Reset treasury form
+ */
+function resetTreasuryForm() {
+    if (treasuryPlayerSelect) {
+        treasuryPlayerSelect.value = '';
+    }
+    if (treasuryAmount) {
+        treasuryAmount.value = '';
+    }
+    const payRadio = document.querySelector('input[name="treasury-type"][value="pay"]');
+    if (payRadio) {
+        payRadio.checked = true;
+    }
+    updateTreasurySubmitButton();
+    hideTreasuryMessage();
+}
+
+/**
+ * Show treasury message
+ */
+function showTreasuryMessage(message, type = 'info') {
+    if (!treasuryMessageArea || !treasuryMessageContent) return;
+    
+    treasuryMessageContent.textContent = message;
+    treasuryMessageArea.className = `message-area ${type}`;
+    treasuryMessageArea.style.display = 'block';
+}
+
+/**
+ * Hide treasury message
+ */
+function hideTreasuryMessage() {
+    if (treasuryMessageArea) {
+        treasuryMessageArea.style.display = 'none';
     }
 }
 

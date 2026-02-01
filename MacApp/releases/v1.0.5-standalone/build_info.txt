@@ -1,0 +1,5 @@
+Monopoly Standalone App
+Version: v1.0.5
+Build Date: 2026-02-01 23:19:03
+Build Type: Standalone (fully portable)
+Bundled Server Size:  23M

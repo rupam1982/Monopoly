@@ -1,0 +1,94 @@
+{
+  "Street 1": {
+    "Asset 1.1": {
+      "land_price": 100,
+      "house_price": 50,
+      "rent": {
+        "no_houses": 10,
+        "one_house": 20,
+        "two_houses": 30,
+        "three_houses": 40,
+        "four_houses": 50
+      }
+    },
+    "Asset 1.2": {
+      "land_price": 105,
+      "house_price": 55,
+      "rent": {
+        "no_houses": 15,
+        "one_house": 25,
+        "two_houses": 35,
+        "three_houses": 45,
+        "four_houses": 55
+      }
+    },
+    "Asset 1.3": {
+      "land_price": 100,
+      "house_price": 50,
+      "rent": {
+        "no_houses": 10,
+        "one_house": 20,
+        "two_houses": 30,
+        "three_houses": 40,
+        "four_houses": 50
+      }
+    },
+    "Asset 1.4": {
+      "land_price": 105,
+      "house_price": 55,
+      "rent": {
+        "no_houses": 15,
+        "one_house": 25,
+        "two_houses": 35,
+        "three_houses": 45,
+        "four_houses": 55
+      }
+    }
+  },
+  "Street 2": {
+    "Asset 2.1": {
+      "land_price": 110,
+      "house_price": 60,
+      "rent": {
+        "no_houses": 20,
+        "one_house": 30,
+        "two_houses": 40,
+        "three_houses": 50,
+        "four_houses": 60
+      }
+    },
+    "Asset 2.2": {
+      "land_price": 115,
+      "house_price": 65,
+      "rent": {
+        "no_houses": 25,
+        "one_house": 35,
+        "two_houses": 45,
+        "three_houses": 55,
+        "four_houses": 65
+      }
+    },
+    "Asset 2.3": {
+      "land_price": 120,
+      "house_price": 70,
+      "rent": {
+        "no_houses": 30,
+        "one_house": 40,
+        "two_houses": 50,
+        "three_houses": 60,
+        "four_houses": 70
+      }
+    },
+    "Asset 2.4": {
+      "land_price": 125,
+      "house_price": 75,
+      "rent": {
+        "no_houses": 35,
+        "one_house": 45,
+        "two_houses": 55,
+        "three_houses": 65,
+        "four_houses": 75
+      }
+    }
+  }
+}

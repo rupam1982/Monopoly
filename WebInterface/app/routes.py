@@ -363,6 +363,63 @@ def buy_utility():
         return jsonify({'error': f'Unexpected error: {str(e)}'}), 500
 
 
+@api.route('/treasury-action', methods=['POST'])
+def treasury_action():
+    """
+    Handle treasury transactions (pay to or collect from treasurer)
+    Records transaction in player accounts
+    """
+    data = request.get_json()
+    player = data.get('player')
+    amount = data.get('amount')  # Negative for payment, positive for collection
+    source = 'Treasurer'  # Simplified source name
+
+    if not player:
+        return jsonify({'error': 'Player name is required'}), 400
+    
+    if amount is None:
+        return jsonify({'error': 'Amount is required'}), 400
+    
+    try:
+        amount = float(amount)
+    except (TypeError, ValueError):
+        return jsonify({'error': 'Invalid amount format'}), 400
+
+    try:
+        # Load existing accounts
+        if os.path.exists(PLAYER_ACCOUNTS_DB):
+            with open(PLAYER_ACCOUNTS_DB, 'r', encoding='utf-8') as f:
+                accounts = json.load(f)
+        else:
+            accounts = {}
+        
+        # Initialize player account if not exists
+        if player not in accounts:
+            accounts[player] = []
+        
+        # Add transaction
+        transaction = {
+            'payment amount': amount,
+            'payment source': source
+        }
+        accounts[player].append(transaction)
+        
+        # Save updated accounts
+        with open(PLAYER_ACCOUNTS_DB, 'w', encoding='utf-8') as f:
+            json.dump(accounts, f, indent=2)
+        
+        transaction_type = "payment" if amount < 0 else "collection"
+        message = f"SUCCESS: Treasury {transaction_type} of ${abs(amount)} recorded for {player}"
+        
+        return jsonify({
+            'success': True,
+            'message': message
+        })
+    
+    except Exception as e:
+        return jsonify({'error': f'Failed to process treasury action: {str(e)}'}), 500
+
+
 @api.route('/transactions', methods=['GET'])
 def get_transactions():
     """Get all transaction records from player accounts"""

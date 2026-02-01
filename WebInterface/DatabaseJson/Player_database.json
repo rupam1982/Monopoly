@@ -1,39 +1,28 @@
 {
-  "Rupamekfghfj23lqe/rebg": {
-    "Street 1": {
-      "Asset 1.3": {
+  "Player 1": {
+    "Los Angeles": {
+      "Hollywood Ave.": {
         "houses": 2
       }
     },
-    "Street 2": {
-      "Asset 2.4": {
+    "Utilities": {
+      "U.S. Electric Company": {},
+      "U.S. Gas Company": {}
+    },
+    "Chicago": {
+      "Michigan Avenue": {
         "houses": 1
       }
     }
   },
-  "Player 1": {
-    "Street 2": {
-      "Asset 2.3": {
-        "houses": 4
-      }
-    },
-    "Street 1": {
-      "Asset 1.2": {
-        "houses": 2
-      }
-    },
-    "Utilities": {
-      "Gas Company": {}
-    }
-  },
   "Player 2": {
-    "Street 2": {
-      "Asset 2.1": {
+    "Boston": {
+      "Beacon Street": {
         "houses": 3
       }
     },
-    "Utilities": {
-      "Electric Company": {}
+    "Transport": {
+      "U.S. Bus Company": {}
     }
   }
 }

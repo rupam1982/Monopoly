@@ -1,0 +1,56 @@
+{
+    "Utilities": {
+        "Electric Company": {
+            "price": 150,
+            "multiplier": {
+                "1 owned": 4,
+                "2 owned": 10
+            }
+        },
+        "Gas Company": {
+            "price": 150,
+            "multiplier": {
+                "1 owned": 4,
+                "2 owned": 10
+            }
+        }
+    },
+    "Transport": {
+        "Railroad": {
+            "price": 200,
+            "ticket": {
+                "1 owned": 40,
+                "2 owned": 80,
+                "3 owned": 160,
+                "4 owned": 320
+            }
+        },
+        "Bus Company": {
+            "price": 200,
+            "ticket": {
+                "1 owned": 40,
+                "2 owned": 80,
+                "3 owned": 160,
+                "4 owned": 320
+            }
+        },
+        "Airline": {
+            "price": 200,
+            "ticket": {
+                "1 owned": 40,
+                "2 owned": 80,
+                "3 owned": 160,
+                "4 owned": 320
+            }
+        },
+        "Truck Company": {
+            "price": 200,
+            "ticket": {
+                "1 owned": 40,
+                "2 owned": 80,
+                "3 owned": 160,
+                "4 owned": 320
+            }
+        }
+    }
+}

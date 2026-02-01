@@ -234,8 +234,18 @@ function displayTransactionsTable(data) {
         return;
     }
 
+    // Save current filter selection before rebuilding
+    const existingTransactionPlayerFilter = document.getElementById('filter-transaction-player');
+    const previousTransactionFilter = existingTransactionPlayerFilter ? existingTransactionPlayerFilter.value : '';
+
+    // Collect unique players
+    const uniquePlayers = Object.keys(playerAccounts).sort();
+    const playerOptions = uniquePlayers.map(p =>
+        `<option value="${escapeHtml(p)}">${escapeHtml(p)}</option>`
+    ).join('');
+
     let tableHTML = `
-        <table class="db-table">
+        <table class="db-table" id="transactions-table">
             <thead>
                 <tr>
                     <th>Player</th>
@@ -243,8 +253,19 @@ function displayTransactionsTable(data) {
                     <th>Source/Destination</th>
                     <th>Balance</th>
                 </tr>
+                <tr class="filter-row">
+                    <th>
+                        <select class="table-filter" id="filter-transaction-player">
+                            <option value="">All Players</option>
+                            ${playerOptions}
+                        </select>
+                    </th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                </tr>
             </thead>
-            <tbody>
+            <tbody id="transactions-table-body">
     `;
 
     for (const player in playerAccounts) {
@@ -276,6 +297,19 @@ function displayTransactionsTable(data) {
     `;
 
     transactionsContent.innerHTML = tableHTML;
+
+    // Restore previous filter selection
+    const transactionPlayerFilter = document.getElementById('filter-transaction-player');
+    if (transactionPlayerFilter && previousTransactionFilter) {
+        transactionPlayerFilter.value = previousTransactionFilter;
+    }
+
+    setupTransactionFilters();
+
+    // Re-apply filter if it was set
+    if (previousTransactionFilter) {
+        filterTransactionsTable(transactionPlayerFilter);
+    }
 }
 
 /**
@@ -377,6 +411,43 @@ function filterTable(filters) {
         const matchesStreet = !filters.street.value || streetText === filters.street.value;
 
         if (matchesPlayer && matchesStreet) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    }
+}
+
+/**
+ * Setup transaction table filter functionality
+ */
+function setupTransactionFilters() {
+    const transactionPlayerFilter = document.getElementById('filter-transaction-player');
+
+    if (transactionPlayerFilter) {
+        transactionPlayerFilter.addEventListener('change', () => {
+            filterTransactionsTable(transactionPlayerFilter);
+        });
+    }
+}
+
+/**
+ * Filter transactions table based on selected player
+ */
+function filterTransactionsTable(playerFilter) {
+    const tableBody = document.getElementById('transactions-table-body');
+    if (!tableBody) return;
+
+    const rows = tableBody.getElementsByTagName('tr');
+    const selectedPlayer = playerFilter.value;
+
+    for (const row of rows) {
+        const cells = row.getElementsByTagName('td');
+        if (cells.length < 1) continue;
+
+        const playerText = cells[0].textContent;
+
+        if (!selectedPlayer || playerText === selectedPlayer) {
             row.style.display = '';
         } else {
             row.style.display = 'none';
