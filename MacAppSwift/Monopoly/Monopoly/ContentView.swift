@@ -4,22 +4,40 @@
 //
 //  Created by Rupam Mukherjee on 15/01/26.
 //
-//  This file is kept for compatibility but is not actively used.
-//  The app uses AppKit/WebKit instead of SwiftUI.
-//
 
 import SwiftUI
 
 struct ContentView: View {
+    @StateObject private var dataManager = DataManager()
+    @State private var selectedTab = 0
+
     var body: some View {
-        VStack {
-            Text("Monopoly")
-                .font(.largeTitle)
-                .padding()
-            Text("Loading web interface...")
-                .foregroundColor(.secondary)
+        TabView(selection: $selectedTab) {
+            PropertyActionView(dataManager: dataManager)
+                .tabItem {
+                    Label("Property Action", systemImage: "house.fill")
+                }
+                .tag(0)
+
+            UtilityActionView(dataManager: dataManager)
+                .tabItem {
+                    Label("Utility Action", systemImage: "building.2.fill")
+                }
+                .tag(1)
+
+            TreasuryActionView(dataManager: dataManager)
+                .tabItem {
+                    Label("Treasury Action", systemImage: "dollarsign.circle.fill")
+                }
+                .tag(2)
+
+            AccountsView(dataManager: dataManager)
+                .tabItem {
+                    Label("Accounts", systemImage: "list.bullet.rectangle")
+                }
+                .tag(3)
         }
-        .frame(width: 400, height: 300)
+        .frame(minWidth: 800, minHeight: 600)
     }
 }
 
