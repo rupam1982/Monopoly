@@ -9,17 +9,14 @@ PROJECT_DIR="$(cd "$(dirname "$0")" && pwd)"
 XCODE_PROJECT="$PROJECT_DIR/Monopoly/Monopoly.xcodeproj"
 APP_NAME="Monopoly.app"
 
-# Version management: manually set version or use git tag
-# To change version, either:
-#   1. Set VERSION environment variable: VERSION=1.2.0 ./wrapper_build.sh
-#   2. Use git tags: git tag v1.2.0
+# Version management: manually set version or auto-increment
+# To change version, set VERSION environment variable: VERSION=1.2.0 ./wrapper_build.sh
 if [ -n "$VERSION" ]; then
     NEW_VERSION="$VERSION"
-elif git describe --tags --exact-match 2>/dev/null; then
-    NEW_VERSION=$(git describe --tags --exact-match | sed 's/^v//')
 else
     # Auto-increment from latest wrapper release (non-standalone)
-    LATEST_VERSION=$(find "$PROJECT_DIR/releases" -type d -name "v*" 2>/dev/null | grep -v standalone | sed 's|.*/v||' | sort -V | tail -n 1)
+    # Only match valid semantic versions (vX.Y.Z format)
+    LATEST_VERSION=$(find "$PROJECT_DIR/releases" -type d -name "v*" 2>/dev/null | grep -v standalone | grep -E '/v[0-9]+\.[0-9]+\.[0-9]+$' | sed 's|.*/v||' | sort -V | tail -n 1)
     
     if [ -n "$LATEST_VERSION" ]; then
         # Increment patch version (e.g., 1.0.0 -> 1.0.1)

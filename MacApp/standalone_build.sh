@@ -15,7 +15,8 @@ echo "📱 Step 1: Getting wrapper build..."
 cd "$MACAPP_DIR"
 
 # Get the latest wrapper build using find with sort by modification time
-LATEST_WRAPPER=$(find releases -name "Monopoly.app" -type d 2>/dev/null | grep -v standalone | xargs ls -td 2>/dev/null | head -n 1)
+# Only match valid semantic versions (vX.Y.Z format)
+LATEST_WRAPPER=$(find releases -name "Monopoly.app" -type d 2>/dev/null | grep -v standalone | grep -E '/v[0-9]+\.[0-9]+\.[0-9]+/' | xargs ls -td 2>/dev/null | head -n 1)
 
 if [ -z "$LATEST_WRAPPER" ]; then
     echo "⚠️  No wrapper build found. Building wrapper first..."
@@ -48,7 +49,8 @@ if [ -d "$BUILD_DIR" ]; then
     ./wrapper_build.sh
     
     # Get the new wrapper build (latest by modification time)
-    LATEST_WRAPPER=$(find releases -name "Monopoly.app" -type d 2>/dev/null | grep -v standalone | xargs ls -td 2>/dev/null | head -n 1)
+    # Only match valid semantic versions (vX.Y.Z format)
+    LATEST_WRAPPER=$(find releases -name "Monopoly.app" -type d 2>/dev/null | grep -v standalone | grep -E '/v[0-9]+\.[0-9]+\.[0-9]+/' | xargs ls -td 2>/dev/null | head -n 1)
     if [ -z "$LATEST_WRAPPER" ]; then
         echo "❌ Failed to create new wrapper build"
         exit 1

@@ -1,0 +1,24 @@
+# Monopoly Game Database System - Python Requirements
+# This file contains all Python dependencies for the entire project
+
+# Core dependencies
+Flask==2.3.3
+Werkzeug==2.3.7
+
+# Data processing
+pandas>=2.0.0
+openpyxl>=3.0.0  # Required for pandas Excel support
+
+# Development tools
+watchdog>=3.0.0  # File system monitoring for development
+
+# Build tools
+pyinstaller>=5.0.0  # For creating standalone executables
+
+# Standard library packages (included with Python, listed for reference)
+# argparse - Command-line argument parsing
+# json - JSON encoding/decoding
+# os - Operating system interface
+# sys - System-specific parameters
+# socket - Low-level networking interface
+# io - Core tools for working with streams
