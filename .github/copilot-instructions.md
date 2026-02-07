@@ -1,7 +1,7 @@
 # Monopoly Game Database System - AI Coding Guide
 
 ## Project Overview
-Electronic Monopoly property management system with a multi-tier database architecture for tracking asset definitions, player ownership, and financial transactions. Includes both CLI and web-based interfaces.
+Electronic Monopoly property management system with a multi-tier database architecture for tracking asset definitions, player ownership, and financial transactions. Includes CLI, web-based, and native macOS/iOS app interfaces.
 
 ## Architecture
 
@@ -29,13 +29,28 @@ Electronic Monopoly property management system with a multi-tier database archit
   - `Player_accounts.json`: Financial transaction ledger
   - `Commercial_properties.json`: Commercial asset tracking
 - **templates/**: HTML interfaces
-  - `index.html`: Property assignment interface
+  - `index.html`: Multi-tab interface with Property Action, Utility Action, and Treasury Action tabs
   - `accounts.html`: Player accounts and transaction viewer
 - **static/**: Frontend assets
-  - `css/style.css`: Application styling
-  - `js/app.js`: Property assignment logic
+  - `css/style.css`: Application styling with responsive layouts
+  - `js/app.js`: Main application logic for all action tabs
   - `js/accounts.js`: Account viewer logic
 - **run.py**: Application entry point
+
+#### Native Apps (macOS/iOS)
+- **MacApp/**: macOS application using Swift + Python Flask backend
+  - Uses WKWebView to display WebInterface
+  - `MonopolyApp.swift`: Launches Flask server and displays WebKit view
+  - Build scripts: `wrapper_build.sh`, `standalone_build.sh`
+  
+- **MacAppSwift/**: Alternative macOS application (same architecture as MacApp)
+  - Despite the name, uses Python Flask backend + Swift WebKit wrapper
+  - `MonopolyApp.swift`: Launches Flask server from WebInterface directory
+  - Build script: `wrapper_build.sh`
+  
+- **iPhoneApp/**: iOS application using Swift + Python Flask backend
+  - Similar architecture to macOS apps
+  - Build scripts: `wrapper_build.sh`, `standalone_build.sh`
 
 ### Data Model
 
@@ -163,11 +178,24 @@ python run.py
 ```
 
 #### Key Web Features
-- **Property Assignment** (index.html):
+- **Property Action Tab** (index.html):
   - Dynamic dropdowns for players, areas, and properties
   - Real-time validation and button state management
   - Live database viewer showing current state
   - Support for adding new players on-the-fly
+  - Buy Property and Pay Rent buttons with contextual one-liner messages
+  - Green success messages for purchases, rent calculation previews
+
+- **Utility Action Tab** (index.html):
+  - Commercial property purchases (utilities, railroads)
+  - Asset type and property selection
+  - One-liner success messages for transactions
+  
+- **Treasury Action Tab** (index.html):
+  - Pay to or collect from treasurer
+  - Fixed button layout: Submit (left), message (center), Reset (right)
+  - One-liner success messages in green for completed transactions
+  - Message wraps if long, buttons remain fixed
 
 - **Accounts & Transactions** (accounts.html):
   - View all player property inventory
@@ -187,6 +215,7 @@ python run.py
 - `POST /api/start-game` - Initialize game with starting balances
 - `POST /api/pay-rent` - Process rent payment between players
 - `POST /api/buy-utility` - Assign commercial property
+- `POST /api/treasury-action` - Handle treasury transactions (pay/collect)
 
 ## Implementation Notes
 
@@ -209,6 +238,11 @@ python run.py
   - All dropdowns interdependent (player → area → property → houses)
   - Use `disabled` attribute for progressive disclosure
   - Auto-refresh database viewer after mutations
+- **Message Display Pattern**:
+  - Success transactions: One-liner message in green text (e.g., "Player X paid $Y to Z")
+  - Error messages: Red error box with details
+  - NO green message boxes for successful transactions (removed - only show one-liner)
+  - Treasury tab: Fixed button layout with centered message between Submit/Reset buttons
 - **Separation of Concerns**:
   - `data_service.py`: Pure data access, returns tuples `(data, error)`
   - `routes.py`: HTTP handling, calls data_service and player_manager
