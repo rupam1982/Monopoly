@@ -195,4 +195,27 @@ class DataManager: ObservableObject {
 
         print("Player \(payingPlayer) has paid $\(rentAmount) to Player \(receivingPlayer)")
     }
+
+    func startGame(players: [String], startingBalance: Int) {
+        // Clear all player data
+        playerDatabase = [:]
+        playerAccounts = [:]
+
+        // Initialize each player with starting balance
+        for player in players {
+            playerAccounts[player] = [
+                Transaction(paymentAmount: startingBalance, paymentSource: "Game Start")
+            ]
+        }
+
+        print("Game started with \(players.count) players, each with $\(startingBalance)")
+    }
+
+    func resetGame() {
+        // Clear all mutable data
+        playerDatabase = [:]
+        playerAccounts = [:]
+
+        print("Game reset - all player data cleared")
+    }
 }

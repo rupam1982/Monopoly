@@ -331,6 +331,34 @@ section h2 {
     font-weight: 500;
 }
 
+/* Treasury Action Button Group - Fixed Layout */
+#treasury-action-tab .button-group {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 15px;
+    align-items: center;
+    margin-top: 30px;
+}
+
+#treasury-action-tab #treasury-submit-btn {
+    grid-column: 1;
+    justify-self: start;
+}
+
+#treasury-action-tab #treasury-message {
+    grid-column: 2;
+    text-align: center;
+    margin: 0;
+    padding: 0 10px;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+#treasury-action-tab #treasury-reset-btn {
+    grid-column: 3;
+    justify-self: end;
+}
+
 /* Message Area */
 .message-area {
     margin-top: 25px;

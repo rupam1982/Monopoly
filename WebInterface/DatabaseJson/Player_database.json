@@ -1,28 +1,33 @@
 {
   "Player 1": {
-    "Los Angeles": {
-      "Hollywood Ave.": {
+    "Boston": {
+      "Beacon Street": {
+        "houses": 4
+      },
+      "Brattle Street": {
         "houses": 2
       }
     },
     "Utilities": {
-      "U.S. Electric Company": {},
       "U.S. Gas Company": {}
     },
-    "Chicago": {
-      "Michigan Avenue": {
-        "houses": 1
+    "Los Angeles": {
+      "Hollywood Ave.": {
+        "houses": 0
       }
     }
   },
   "Player 2": {
-    "Boston": {
-      "Beacon Street": {
-        "houses": 3
+    "Chicago": {
+      "Michigan Avenue": {
+        "houses": 2
+      },
+      "Rush Street": {
+        "houses": 1
       }
     },
     "Transport": {
-      "U.S. Bus Company": {}
+      "U.S. Air Line": {}
     }
   }
 }

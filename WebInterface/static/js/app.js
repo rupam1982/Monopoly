@@ -19,7 +19,7 @@ let utilityResetBtn, utilityBuyBtn, utilityPayTicketBtn, utilityTicketMessage;
 
 // Treasury Action elements
 let treasuryPlayerSelect, treasuryAmount, treasurySubmitBtn, treasuryResetBtn;
-let treasuryMessageArea, treasuryMessageContent;
+let treasuryMessageArea, treasuryMessageContent, treasuryMessage;
 
 // State
 let availableAreas = [];
@@ -90,6 +90,7 @@ async function init() {
     treasuryResetBtn = document.getElementById('treasury-reset-btn');
     treasuryMessageArea = document.getElementById('treasury-message-area');
     treasuryMessageContent = document.getElementById('treasury-message-content');
+    treasuryMessage = document.getElementById('treasury-message');
 
     await loadAreas();
     await loadPlayers();
@@ -615,16 +616,10 @@ async function handleAssign() {
 
         const data = await response.json();
 
-        // Always show Python output if available
-        if (data.message) {
-            showPythonOutput(data.message);
-        }
-
-        // Show in error details for errors
-        if (data.status === 'error') {
-            if (data.message) {
-                showErrorDetails(data.message);
-            }
+        // Show error messages only
+        if (data.status === 'error' && data.message) {
+            showMessage('error', data.message);
+            showErrorDetails(data.message);
         }
 
         // Update message with payment confirmation
@@ -880,6 +875,13 @@ async function loadDatabase() {
         const response = await fetch(`${API_BASE}/database`);
         const data = await response.json();
         const playerDb = data.player_database || {};
+
+        // Get the database content container
+        const playerDbContent = document.getElementById('player-db-content');
+        if (!playerDbContent) {
+            console.log('Database viewer not found on this page');
+            return;
+        }
 
         if (Object.keys(playerDb).length === 0) {
             playerDbContent.innerHTML = '<p class="empty">No players or properties assigned yet.</p>';
@@ -1681,16 +1683,10 @@ async function handleUtilityBuy() {
 
         const data = await response.json();
 
-        // Show the message
-        if (data.message) {
-            showPythonOutput(data.message);
-        }
-
-        // Show in error details for errors
-        if (data.status === 'error') {
-            if (data.message) {
-                showErrorDetails(data.message);
-            }
+        // Show error messages only
+        if (data.status === 'error' && data.message) {
+            showMessage('error', data.message);
+            showErrorDetails(data.message);
         }
 
         // Update message with payment confirmation
@@ -1815,18 +1811,18 @@ function setupEventListeners() {
  * Handle Start Game button click
  */
 async function handleStartGame() {
-    // Confirm with user
-    const confirmed = confirm('This will reset all player properties and accounts. Are you sure you want to start a new game?');
+    console.log('Start Game button clicked');
 
-    if (!confirmed) {
-        return;
-    }
+    // Skip confirmation - just proceed directly
+    // (confirm() dialogs are blocked in WKWebView)
+    console.log('Starting game...');
 
     // Disable button during request
     startGameBtn.disabled = true;
     startGameBtn.textContent = 'Starting...';
 
     try {
+        console.log('Sending POST request to /api/start-game');
         const response = await fetch(`${API_BASE}/start-game`, {
             method: 'POST',
             headers: {
@@ -1834,20 +1830,26 @@ async function handleStartGame() {
             }
         });
 
+        console.log('Response received:', response.status);
         const result = await response.json();
+        console.log('Result:', result);
 
         if (result.error) {
             showErrorDetails(result.error);
         } else if (result.message) {
-            showPythonOutput(result.message);
+            showMessage('success', result.message);
 
             // Reload the database to reflect changes
+            console.log('Reloading players and database...');
             await loadPlayers();
+            await loadDatabase();
+            console.log('Reload complete');
 
             // Reset the form
             resetForm();
         }
     } catch (error) {
+        console.error('Error in handleStartGame:', error);
         showErrorDetails(`Network error: ${error.message}`);
     } finally {
         // Re-enable button
@@ -1919,9 +1921,12 @@ async function handleTreasurySubmit() {
         if (result.error) {
             showTreasuryMessage(result.error, 'error');
         } else if (result.success) {
-            showTreasuryMessage(result.message || 'Transaction completed successfully', 'success');
+            // Display one-liner success message
+            const action = transactionType === 'pay' ? 'paid' : 'collected';
+            const preposition = transactionType === 'pay' ? 'to' : 'from';
+            treasuryMessage.textContent = `Player "${player}" ${action} $${amount} ${preposition} Treasurer`;
+            treasuryMessage.style.color = '#2e7d32'; // Green color for success
 
-            // Reset form after successful transaction
             setTimeout(() => {
                 resetTreasuryForm();
             }, 2000);
@@ -1948,6 +1953,9 @@ function resetTreasuryForm() {
     const payRadio = document.querySelector('input[name="treasury-type"][value="pay"]');
     if (payRadio) {
         payRadio.checked = true;
+    }
+    if (treasuryMessage) {
+        treasuryMessage.textContent = '';
     }
     updateTreasurySubmitButton();
     hideTreasuryMessage();
