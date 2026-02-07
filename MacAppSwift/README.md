@@ -1,24 +1,47 @@
-# Monopoly MacOS App
+# Monopoly MacAppSwift - Swift-Only macOS Application
 
-Native macOS application for the Monopoly property management system. Uses AppKit and WebKit to provide a native window wrapper around the Flask web interface.
+## Overview
+This is a **pure Swift** implementation of the Monopoly game management system for macOS. Unlike the MacApp version, this application has **no Python dependencies** and is completely self-contained.
 
-## 🚀 Quick Start
+## Architecture
 
-### Build the App
+### Pure Swift Implementation
+- **DataManager.swift**: Core business logic for managing game data
+  - Asset validation and assignment
+  - Player ownership tracking
+  - Rent payment processing
+  - House cap enforcement (max 4 houses per property)
+
+- **ContentView.swift**: SwiftUI user interface
+  - Property assignment interface
+  - Real-time database viewer
+  - Interactive pickers for players, areas, and assets
+
+### Data Files (Bundled with App)
+All game data is stored in JSON files bundled within the application:
+- `Asset_database.json`: Property definitions and rent structures
+- `Player_database.json`: Player ownership state
+- `Player_accounts.json`: Financial transaction ledger
+- `Commercial_properties.json`: Commercial asset tracking
+
+## Building the Application
+
+### Prerequisites
+- macOS with Xcode installed
+- No Python or other dependencies required
+
+### Build Instructions
+
+#### Build with Command Line
 ```bash
-cd "/Users/rupam/Projects/Monopoly app/MacApp"
 ./wrapper_build.sh
 ```
 
-### Run the App
-```bash
-open build/DerivedData/Build/Products/Release/Monopoly.app
-```
-
-### Install to Applications
-```bash
-cp -r build/DerivedData/Build/Products/Release/Monopoly.app ~/Applications/
-```
+This will:
+- Build the Release configuration
+- Create a versioned release in `releases/vX.Y.Z/`
+- Auto-increment version numbers
+- Generate a build info file
 
 ### Build & Run (One Command)
 ```bash

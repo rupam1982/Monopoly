@@ -1,4 +1,6 @@
-Monopoly Wrapper App
+Monopoly Swift App
 Version: v1.0.0
-Build Date: 2026-02-07 15:28:26
-Build Type: Wrapper (requires Python)
+Build Date: 2026-02-07 15:58:59
+Build Type: Pure Swift (Self-contained, no Python)
+Dependencies: None
+Size: 352K

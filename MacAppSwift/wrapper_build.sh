@@ -1,7 +1,8 @@
 #!/bin/bash
 
-# Build script for Monopoly macOS app
-# This script builds the app using xcodebuild command-line tools
+# Build script for Monopoly Swift macOS app
+# This script builds the pure Swift app using xcodebuild command-line tools
+# NO Python dependencies required
 
 set -e  # Exit on error
 
@@ -32,10 +33,11 @@ fi
 BUILD_DIR="$PROJECT_DIR/releases/v$NEW_VERSION"
 TEMP_BUILD_DIR="$PROJECT_DIR/build"
 
-echo "🔨 Building Monopoly macOS App (Wrapper)"
+echo "🔨 Building Monopoly Swift macOS App"
 echo "=========================================="
 echo "Version: v$NEW_VERSION"
 echo "Project: $XCODE_PROJECT"
+echo "Type: Pure Swift (No Python dependencies)"
 echo ""
 
 # Clean temp build directory
@@ -73,10 +75,12 @@ if [ $? -eq 0 ]; then
         
         # Create build info file
         BUILD_INFO="$BUILD_DIR/build_info.txt"
-        echo "Monopoly Wrapper App" > "$BUILD_INFO"
+        echo "Monopoly Swift App" > "$BUILD_INFO"
         echo "Version: v$NEW_VERSION" >> "$BUILD_INFO"
         echo "Build Date: $(date '+%Y-%m-%d %H:%M:%S')" >> "$BUILD_INFO"
-        echo "Build Type: Wrapper (requires Python)" >> "$BUILD_INFO"
+        echo "Build Type: Pure Swift (Self-contained, no Python)" >> "$BUILD_INFO"
+        echo "Dependencies: None" >> "$BUILD_INFO"
+        echo "Size: $(du -sh "$BUILD_DIR/$APP_NAME" | cut -f1)" >> "$BUILD_INFO"
         
         echo ""
         echo "=========================================="
